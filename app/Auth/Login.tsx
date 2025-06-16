@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, StatusBar, useColorScheme, Platform } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, StatusBar, useColorScheme, Platform, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import axios from 'axios'; // Import axios
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 const primaryColor = '#FFAA01';
 const lightTextColor = '#000000';
@@ -20,8 +22,8 @@ export default function Login({ navigation }: { navigation: any }) {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-const iconColor = isDarkMode ? '#FFFFFF' : '#757575';
-
+  const [loading, setLoading] = useState(false); // State untuk indikator loading
+  const iconColor = isDarkMode ? '#FFFFFF' : '#757575';
 
   const currentTextColor = isDarkMode ? darkTextColor : lightTextColor;
   const currentSubTextColor = isDarkMode ? darkSubTextColor : lightSubTextColor;
@@ -30,6 +32,42 @@ const iconColor = isDarkMode ? '#FFFFFF' : '#757575';
   const currentInputBackgroundColor = isDarkMode ? '#1E1E1E' : '#FFFFFF';
   const currentBackgroundColor = isDarkMode ? '#121212' : '#FFFFFF';
   const linkTextColor = isDarkMode ? 'text-[#FFAA01]' : 'text-[#FFAA01]';
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Email dan Kata Sandi harus diisi.');
+      return;
+    }
+
+    setLoading(true); // Aktifkan loading
+    try {
+      // Sesuaikan URL dengan endpoint login UMKM Anda
+      const response = await axios.post('https://ekraf.asepharyana.tech/api/auth/login/umkm', {
+        usernameOrEmail: email, // API Anda menerima usernameOrEmail
+        password: password,
+      });
+
+      if (response.status === 200) {
+        const { message, token, user } = response.data;
+        await AsyncStorage.setItem('userToken', token); // Simpan token
+        await AsyncStorage.setItem('userData', JSON.stringify(user)); // Simpan data user jika diperlukan
+        Alert.alert('Sukses', message);
+
+        navigation.replace('NavigationBottom'); // Ganti layar ke halaman utama setelah login
+      } else {
+        // Ini mungkin tidak akan terpanggil karena axios akan throw error untuk status non-2xx
+        Alert.alert('Login Gagal', response.data.message || 'Terjadi kesalahan saat login.');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error.response?.data || error.message);
+      Alert.alert(
+        'Login Gagal',
+        error.response?.data?.message || 'Tidak dapat terhubung ke server. Mohon coba lagi.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   return (
@@ -95,8 +133,16 @@ const iconColor = isDarkMode ? '#FFFFFF' : '#757575';
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={[styles.loginButton, { backgroundColor: primaryColor }]} onPress={() => navigation.navigate('NavigationBottom')}>
-        <Text style={styles.loginButtonText}>Masuk</Text>
+      <TouchableOpacity
+        style={[styles.loginButton, { backgroundColor: primaryColor }]}
+        onPress={handleLogin} // Panggil fungsi handleLogin
+        disabled={loading} // Nonaktifkan tombol saat loading
+      >
+        {loading ? (
+          <ActivityIndicator color="#FFFFFF" />
+        ) : (
+          <Text style={styles.loginButtonText}>Masuk</Text>
+        )}
       </TouchableOpacity>
 
       <View style={styles.registerContainer}>
