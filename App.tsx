@@ -26,6 +26,7 @@ import DashboardScreen from './app/DashboardScreen/Dashboard';
 import ManajemenMitraScreen from './app/DashboardScreen/ManajemenMitra';
 import ManajemenProdukScreen from './app/DashboardScreen/ManajemenProduk';
 import ProfileScreen from './app/DashboardScreen/Profile';
+import AddProdukScreen from './app/DashboardScreen/AddProduk';
 
 import './global.css';
 
@@ -89,6 +90,9 @@ const ProdukTabBarIcon = ({ focused, color }: TabBarIconProps) => (
 const ProfileTabBarIcon = ({ focused, color }: TabBarIconProps) => (
   <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
 );
+const AddProdukTabBarIcon = ({ focused, color }: TabBarIconProps) => (
+  <Ionicons name={focused ? 'add-circle' : 'add-circle-outline'} size={24} color={color} />
+);
 
 // HeaderThemeToggleButton: Moved outside the App component to prevent re-creation on every render
 const HeaderThemeToggleButton = ({ isDark, onPress }: HeaderThemeToggleButtonProps) => (
@@ -130,8 +134,11 @@ function MainTabNavigator({ isDark }: MainTabNavigatorProps) {
       <Tab.Screen name="Manajemen Mitra" options={{ tabBarIcon: MitraTabBarIcon }}>
         {() => <FadeScreen><ManajemenMitraScreen isDark={isDark} /></FadeScreen>}
       </Tab.Screen>
+      <Tab.Screen name="Add Produk" options={{ tabBarIcon: AddProdukTabBarIcon }}>
+        {() => <FadeScreen><AddProdukScreen isDark={isDark} /></FadeScreen>}
+      </Tab.Screen>
       <Tab.Screen name="Manajemen Produk" options={{ tabBarIcon: ProdukTabBarIcon }}>
-       {() => <FadeScreen><ManajemenProdukScreen isDark={isDark} /></FadeScreen>}
+        {() => <FadeScreen><ManajemenProdukScreen isDark={isDark} /></FadeScreen>}
       </Tab.Screen>
       <Tab.Screen name="Profil" options={{ tabBarIcon: ProfileTabBarIcon }}>
         {() => <FadeScreen><ProfileScreen isDark={isDark} /></FadeScreen>}
