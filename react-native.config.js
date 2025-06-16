@@ -1,3 +1,3 @@
 module.exports = {
-  assets: ['./node_modules/react-native-vector-icons/Fonts'], // ✅ ambil font dari sini
+    assets :['./assets/font','./node_modules/react-native-vector-icons/Fonts'],
 };

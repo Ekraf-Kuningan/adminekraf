@@ -42,7 +42,7 @@ export default function Login({ navigation }: { navigation: any }) {
     setLoading(true); // Aktifkan loading
     try {
       // Sesuaikan URL dengan endpoint login UMKM Anda
-      const response = await axios.post('https://ekraf.asepharyana.tech/api/auth/login/umkm', {
+      const response = await axios.post('https://ekraf.asepharyana.tech/api/auth/login/admin', {
         usernameOrEmail: email, // API Anda menerima usernameOrEmail
         password: password,
       });
@@ -144,15 +144,6 @@ export default function Login({ navigation }: { navigation: any }) {
           <Text style={styles.loginButtonText}>Masuk</Text>
         )}
       </TouchableOpacity>
-
-      <View style={styles.registerContainer}>
-        <Text className={`text-lg font-semibold font-poppins-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Tidak punya akun?{' '}
-        </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text className={`text-lg font-semibold font-poppins-bold ${linkTextColor}`} >Daftar</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }

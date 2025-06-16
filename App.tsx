@@ -1,26 +1,30 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import { StyleSheet, Linking, Alert } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from './app/Splashscreen';
 import Login from './app/Auth/Login';
-// import NavigationBottom from './components/NavigationBottom';
-import {  } from 'react-native';
-import ResetPassword from './app/Auth/ResetPassword';
+import ResetPassword from "./app/Auth/ResetPassword";
+
+
+import "./global.css";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const navigationRef = useRef(null);
+
+
   return (
-   <NavigationContainer>
-        <Stack.Navigator initialRouteName="SplashScreen" screenOptions={{headerShown: false,animation: 'fade'}}>
-            <Stack.Screen name="SplashScreen" component={SplashScreen} options={{headerShown: false}} />
-            <Stack.Screen name="ResetPassword" component={ResetPassword} options={{headerShown: false}} />
-            <Stack.Screen name="Login" component={Login} options={{headerShown: false}} />
-            {/* <Stack.Screen name="Register" component={Register} options={{headerShown: false}} />
-            <Stack.Screen name="NavigationBottom" component={NavigationBottom} options={{headerShown: false}} /> */}
-        </Stack.Navigator>
-   </NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
+      <Stack.Navigator initialRouteName="SplashScreen" screenOptions={{headerShown: false, animation: 'fade'}}>
+        <Stack.Screen name="SplashScreen" component={SplashScreen} />
+        <Stack.Screen name="ResetPassword" component={ResetPassword} />
+        <Stack.Screen name="Login" component={Login} />
+      </Stack.Navigator>
+    </NavigationContainer>
   )
 }
 
