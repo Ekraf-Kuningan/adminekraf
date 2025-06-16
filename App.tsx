@@ -1,15 +1,13 @@
-import { StyleSheet, Linking, Alert } from 'react-native';
-import React, { useEffect, useRef } from 'react';
+import { StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from './app/Splashscreen';
 import Login from './app/Auth/Login';
-import ResetPassword from "./app/Auth/ResetPassword";
+import ResetPassword from './app/Auth/ResetPassword';
 
 
-import "./global.css";
+import './global.css';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,7 +23,8 @@ export default function App() {
         <Stack.Screen name="Login" component={Login} />
       </Stack.Navigator>
     </NavigationContainer>
-  )
+  );
 }
 
-const styles = StyleSheet.create({})
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const styles = StyleSheet.create({});

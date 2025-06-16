@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Image, useColorScheme, StatusBar, Animated } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
-import {LinearGradient} from 'react-native-linear-gradient';
+// import MaskedView from '@react-native-masked-view/masked-view';
+// import {LinearGradient} from 'react-native-linear-gradient';
 import { colors } from '../constants/colors';
 
 export default function SplashScreen({ navigation }: { navigation: any }) {
@@ -103,22 +103,22 @@ export default function SplashScreen({ navigation }: { navigation: any }) {
   );
 }
 
-type GradientColorProps = {
-  text: string;
-};
+// type GradientColorProps = {
+//   text: string;
+// };
 
-const GradientColor = ({ text }: GradientColorProps) => {
-  return (
-    <MaskedView maskElement={<Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold',fontSize:20 }}>{text}</Text>}>
-      <LinearGradient
-        colors={['#FFAA01', '#1F6361']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}>
-        <Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold', fontSize:30 }}>{text}</Text>
-      </LinearGradient>
-    </MaskedView>
-  );
-}
+// const GradientColor = ({ text }: GradientColorProps) => {
+//   return (
+//     <MaskedView maskElement={<Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold',fontSize:20 }}>{text}</Text>}>
+//       <LinearGradient
+//         colors={['#FFAA01', '#1F6361']}
+//         start={{ x: 0, y: 0 }}
+//         end={{ x: 1, y: 0 }}>
+//         <Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold', fontSize:30 }}>{text}</Text>
+//       </LinearGradient>
+//     </MaskedView>
+//   );
+// };
 
 const styles = StyleSheet.create({
   container: {

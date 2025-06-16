@@ -31,7 +31,7 @@ export default function Login({ navigation }: { navigation: any }) {
   const currentBorderColor = isDarkMode ? darkBorderColor : lightBorderColor;
   const currentInputBackgroundColor = isDarkMode ? '#1E1E1E' : '#FFFFFF';
   const currentBackgroundColor = isDarkMode ? '#121212' : '#FFFFFF';
-  const linkTextColor = isDarkMode ? 'text-[#FFAA01]' : 'text-[#FFAA01]';
+  // const linkTextColor = isDarkMode ? 'text-[#FFAA01]' : 'text-[#FFAA01]';
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -95,7 +95,7 @@ export default function Login({ navigation }: { navigation: any }) {
       <View style={styles.formContainer}>
         <Text style={[styles.label, { color: currentTextColor }]}>Email</Text>
         <View style={[styles.inputWrapper, { borderColor: currentBorderColor, backgroundColor: currentInputBackgroundColor }]}>
-          <Icon name="mail-outline" size={24} color={iconColor} className='p-2' />
+          <Icon name="mail-outline" size={24} color={iconColor} className="p-2" />
           <TextInput
             style={[styles.input, { color: currentTextColor }]}
             placeholder="Masukkan email disini"
@@ -109,7 +109,7 @@ export default function Login({ navigation }: { navigation: any }) {
 
         <Text style={[styles.label, { color: currentTextColor }]}>Kata Sandi</Text>
         <View style={[styles.inputWrapper, { borderColor: currentBorderColor, backgroundColor: currentInputBackgroundColor }]}>
-          <Icon name="lock-closed-outline" size={24} color={iconColor} className='p-2' />
+          <Icon name="lock-closed-outline" size={24} color={iconColor} className="p-2" />
           <TextInput
             style={[styles.input, { color: currentTextColor }]}
             placeholder="Masukkan kata sandi disini"
@@ -121,7 +121,7 @@ export default function Login({ navigation }: { navigation: any }) {
           />
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
             <Icon
-              name={passwordVisible ? "eye-off-outline" : "eye-outline"}
+              name={passwordVisible ? 'eye-off-outline' : 'eye-outline'}
               size={20}
               color={currentPlaceholderColor}
             />
