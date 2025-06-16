@@ -2,9 +2,10 @@ import { StyleSheet } from 'react-native';
 import React, { useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SplashScreen from './app/Splashscreen';
+import SplashScreen from './app/layout/Splashscreen';
 import Login from './app/Auth/Login';
 import ResetPassword from './app/Auth/ResetPassword';
+import NavigationBottom from './app/layout/NavigationBottom.tsx';
 
 
 import './global.css';
@@ -21,6 +22,7 @@ export default function App() {
         <Stack.Screen name="SplashScreen" component={SplashScreen} />
         <Stack.Screen name="ResetPassword" component={ResetPassword} />
         <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="NavigationBottom" component={NavigationBottom} />
       </Stack.Navigator>
     </NavigationContainer>
   );
