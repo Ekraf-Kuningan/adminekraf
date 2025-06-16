@@ -11,8 +11,8 @@ const ScreenPlaceholder = ({ title, isDark }: { title: string, isDark: boolean }
 );
 
 const DashboardScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Dashboard" isDark={isDark} />;
-const ProdukDataScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Produk" isDark={isDark} />;
-const NotificationScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Notifikasi" isDark={isDark} />;
+const ManajemenMitraScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Manajemen Mitra" isDark={isDark} />;
+const ManajemenProdukScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Manajemen Produk" isDark={isDark} />;
 const ProfileScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Profil" isDark={isDark} />;
 
 function FadeScreen({ children, isDark }: { children: React.ReactNode, isDark: boolean }) {
@@ -95,7 +95,20 @@ export default function NavigationBottom() {
         )}
       </Tab.Screen>
       <Tab.Screen
-        name="Produk"
+        name="Manajemen Mitra"
+        options={{
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons name={focused ? 'business' : 'business-outline'} size={24} color={color} />
+          )
+        }}>
+        {() => (
+          <FadeScreen isDark={isDark}>
+            <ManajemenMitraScreen isDark={isDark} />
+          </FadeScreen>
+        )}
+      </Tab.Screen>
+      <Tab.Screen
+        name="Manajemen Produk"
         options={{
           tabBarIcon: ({ focused, color }) => (
             <Ionicons name={focused ? 'cube' : 'cube-outline'} size={24} color={color} />
@@ -103,21 +116,7 @@ export default function NavigationBottom() {
         }}>
         {() => (
           <FadeScreen isDark={isDark}>
-            <ProdukDataScreen isDark={isDark} />
-          </FadeScreen>
-        )}
-      </Tab.Screen>
-      <Tab.Screen
-        name="Notifikasi"
-        options={{
-          tabBarLabel: 'Notifikasi',
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'notifications' : 'notifications-outline'} size={24} color={color} />
-          )
-        }}>
-        {() => (
-          <FadeScreen isDark={isDark}>
-            <NotificationScreen isDark={isDark} />
+            <ManajemenProdukScreen isDark={isDark} />
           </FadeScreen>
         )}
       </Tab.Screen>
