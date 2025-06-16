@@ -1,30 +1,29 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Image, useColorScheme, StatusBar, Animated, ActivityIndicator } from 'react-native';
-// import MaskedView from '@react-native-masked-view/masked-view';
-// import { LinearGradient } from 'react-native-linear-gradient';
-import { colors } from '../../constants/colors';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { colors } from '../../constants/colors';
 
+// Tipe untuk parameter navigasi stack utama
 type RootStackParamList = {
-  NavigationBottom: undefined;
+  MainApp: undefined; // Diubah dari NavigationBottom ke MainApp
   Login: undefined;
 };
 
-export default function SplashScreen() { // navigation prop tidak perlu di-destructure di sini jika menggunakan useNavigation
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>(); // Dapatkan objek navigasi dengan tipe yang benar
+export default function SplashScreen() {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
+  // Referensi untuk animasi
   const iconFadeAnim = useRef(new Animated.Value(0)).current;
   const iconScaleAnim = useRef(new Animated.Value(0.5)).current;
-
   const textFadeAnim = useRef(new Animated.Value(0)).current;
   const textTranslateYAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
-    // Jalankan semua animasi
+    // Urutan animasi
     Animated.sequence([
       Animated.parallel([
         Animated.timing(iconFadeAnim, {
@@ -54,37 +53,29 @@ export default function SplashScreen() { // navigation prop tidak perlu di-destr
         }),
       ]),
     ]).start(() => {
-      // Setelah semua animasi selesai, baru periksa status otentikasi
+      // Setelah animasi selesai, periksa status otentikasi
       const checkAuthStatus = async () => {
         try {
           const userToken = await AsyncStorage.getItem('userToken');
 
           if (userToken) {
-            // Token ditemukan, pengguna sudah login. Arahkan ke NavigationBottom.
-            if ((navigation as any).replace) {
-              (navigation as any).replace('NavigationBottom');
-            } else if ((navigation as any).navigate) {
-              (navigation as any).navigate('NavigationBottom');
-            }
+            // Pengguna sudah login, arahkan ke MainApp
+            navigation.replace('MainApp');
           } else {
-            // Token tidak ditemukan, pengguna belum login. Arahkan ke Login.
-            navigation.navigate('Login');
+            // Pengguna belum login, arahkan ke Login
+            navigation.replace('Login');
           }
         } catch (e) {
           console.error('Gagal memuat token dari penyimpanan:', e);
-          // Jika ada error, tetap arahkan ke Login sebagai fallback
+          // Fallback jika terjadi error
           navigation.replace('Login');
         }
       };
 
-      // Jalankan pemeriksaan status otentikasi setelah animasi selesai
       checkAuthStatus();
     });
 
-    // Tidak perlu setTimeout terpisah karena logika navigasi ada di callback .start() animasi
-    // dan useNavigation() sudah menangani dependensi navigasi
-
-  }, [iconFadeAnim, iconScaleAnim, textFadeAnim, textTranslateYAnim, navigation]); // Tambahkan navigation sebagai dependensi
+  }, [iconFadeAnim, iconScaleAnim, textFadeAnim, textTranslateYAnim, navigation]);
 
   return (
     <View style={[styles.container, isDarkMode ? styles.darkContainer : styles.lightContainer]}>
@@ -137,23 +128,6 @@ export default function SplashScreen() { // navigation prop tidak perlu di-destr
   );
 }
 
-// type GradientColorProps = {
-//   text: string;
-// };
-
-// const GradientColor = ({ text }: GradientColorProps) => {
-//   return (
-//     <MaskedView maskElement={<Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold',fontSize:20 }}>{text}</Text>}>
-//       <LinearGradient
-//         colors={['#FFAA01', '#1F6361']}
-//         start={{ x: 0, y: 0 }}
-//         end={{ x: 1, y: 0 }}>
-//         <Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold', fontSize:30 }}>{text}</Text>
-//       </LinearGradient>
-//     </MaskedView>
-//   );
-// }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -180,11 +154,6 @@ const styles = StyleSheet.create({
     height: 60,
     marginBottom: 3,
     resizeMode: 'contain',
-  },
-  logoText: {
-    marginTop: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   lightText: {
     color: '#000000',
@@ -216,6 +185,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 30,
   },
   activityIndicator: {
-    marginTop: 50, // Sesuaikan posisi indikator agar terlihat baik
+    marginTop: 50,
   },
 });
