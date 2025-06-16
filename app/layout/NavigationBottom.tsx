@@ -1,21 +1,24 @@
-import { StyleSheet, Text, View, useColorScheme, TouchableOpacity, Animated } from 'react-native';
-import React, { useState, useRef } from 'react';
+import { StyleSheet, useColorScheme, TouchableOpacity, Animated } from 'react-native';
+import React, { useState, useRef, useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const ScreenPlaceholder = ({ title, isDark }: { title: string, isDark: boolean }) => (
-  <View style={[styles.screenContainer, { backgroundColor: isDark ? '#121212' : '#f2f2f2' }]}>
-    <Text style={[styles.screenText, { color: isDark ? '#fff' : '#000' }]}>{title}</Text>
-  </View>
-);
+// const ScreenPlaceholder = ({ title, isDark }: { title: string, isDark: boolean }) => (
+//   <View style={[styles.screenContainer, isDark ? styles.screenContainerDark : styles.screenContainerLight]}>
+//     <Text style={[styles.screenText, isDark ? styles.screenTextDark : styles.screenTextLight]}>{title}</Text>
+//   </View>
+// );
+import DashboardScreen from '../DashboardScreen/Dashboard';
+import ManajemenMitraScreen from '../DashboardScreen/ManajemenMitra';
+import ManajemenProdukScreen from '../DashboardScreen/ManajemenProduk';
+import ProfileScreen from '../DashboardScreen/Profile';
+// const DashboardScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Dashboard" isDark={isDark} />;
+// const ManajemenMitraScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Manajemen Mitra" isDark={isDark} />;
+// const ManajemenProdukScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Manajemen Produk" isDark={isDark} />;
+// const ProfileScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Profil" isDark={isDark} />;
 
-const DashboardScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Dashboard" isDark={isDark} />;
-const ManajemenMitraScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Manajemen Mitra" isDark={isDark} />;
-const ManajemenProdukScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Manajemen Produk" isDark={isDark} />;
-const ProfileScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Profil" isDark={isDark} />;
-
-function FadeScreen({ children, isDark }: { children: React.ReactNode, isDark: boolean }) {
+function FadeScreen({ children }: { children: React.ReactNode }) {
   const isFocused = useIsFocused();
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -27,10 +30,6 @@ function FadeScreen({ children, isDark }: { children: React.ReactNode, isDark: b
     }).start();
   }, [isFocused, opacity]);
 
-  if (isDark) {
-    return <>{children}</>;
-  }
-
   return (
     <Animated.View style={[styles.animatedContainer, { opacity }]}>
       {children}
@@ -38,13 +37,62 @@ function FadeScreen({ children, isDark }: { children: React.ReactNode, isDark: b
   );
 }
 
-
 const Tab = createBottomTabNavigator();
+
+// Tab bar icon components moved outside NavigationBottom
+const DashboardTabBarIcon = ({ focused, color }: { focused: boolean; color: string }) => (
+  <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+);
+
+const MitraTabBarIcon = ({ focused, color }: { focused: boolean; color: string }) => (
+  <Ionicons name={focused ? 'business' : 'business-outline'} size={24} color={color} />
+);
+
+const ProdukTabBarIcon = ({ focused, color }: { focused: boolean; color: string }) => (
+  <Ionicons name={focused ? 'cube' : 'cube-outline'} size={24} color={color} />
+);
+
+const ProfileTabBarIcon = ({ focused, color }: { focused: boolean; color: string }) => (
+  <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
+);
 
 export default function NavigationBottom() {
   const systemColorScheme = useColorScheme();
   const [theme, setTheme] = useState<'light' | 'dark'>(systemColorScheme === 'dark' ? 'dark' : 'light');
   const isDark = theme === 'dark';
+
+  const renderHeaderRight = useCallback(() => (
+    <TouchableOpacity
+      onPress={() => setTheme(isDark ? 'light' : 'dark')}
+      style={styles.headerRightButton}
+      accessibilityLabel="Toggle dark mode">
+      <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={isDark ? '#FFAA01' : '#18181b'} />
+    </TouchableOpacity>
+  ), [isDark]);
+
+  const renderDashboardScreen = useCallback(() => (
+    <FadeScreen>
+      <DashboardScreen isDark={isDark} />
+    </FadeScreen>
+  ), [isDark]);
+
+  const renderManajemenMitraScreen = useCallback(() => (
+    <FadeScreen>
+      <ManajemenMitraScreen isDark={isDark} />
+    </FadeScreen>
+  ), [isDark]);
+
+  const renderManajemenProdukScreen = useCallback(() => (
+    <FadeScreen>
+      <ManajemenProdukScreen isDark={isDark} />
+    </FadeScreen>
+  ), [isDark]);
+
+  const renderProfileScreen = useCallback(() => (
+    <FadeScreen>
+      <ProfileScreen isDark={isDark} />
+    </FadeScreen>
+  ), [isDark]);
 
   return (
     <Tab.Navigator
@@ -56,14 +104,7 @@ export default function NavigationBottom() {
           color: isDark ? '#fff' : '#18181b',
           fontSize: 18,
         },
-        headerRight: () => (
-          <TouchableOpacity
-            onPress={() => setTheme(isDark ? 'light' : 'dark')}
-            style={{ marginRight: 16 }}
-            accessibilityLabel="Toggle dark mode">
-            <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={isDark ? '#FFAA01' : '#18181b'} />
-          </TouchableOpacity>
-        ),
+        headerRight: renderHeaderRight,
         tabBarActiveTintColor: '#FFAA01',
         tabBarInactiveTintColor: '#BEBEBE',
         tabBarStyle: {
@@ -83,55 +124,31 @@ export default function NavigationBottom() {
       <Tab.Screen
         name="Dashboard"
         options={{
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
-          ),
+          tabBarIcon: DashboardTabBarIcon,
         }}
       >
-        {() => (
-          <FadeScreen isDark={isDark}>
-            <DashboardScreen isDark={isDark} />
-          </FadeScreen>
-        )}
+        {renderDashboardScreen}
       </Tab.Screen>
       <Tab.Screen
         name="Manajemen Mitra"
         options={{
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'business' : 'business-outline'} size={24} color={color} />
-          )
+          tabBarIcon: MitraTabBarIcon,
         }}>
-        {() => (
-          <FadeScreen isDark={isDark}>
-            <ManajemenMitraScreen isDark={isDark} />
-          </FadeScreen>
-        )}
+        {renderManajemenMitraScreen}
       </Tab.Screen>
       <Tab.Screen
         name="Manajemen Produk"
         options={{
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'cube' : 'cube-outline'} size={24} color={color} />
-          )
+          tabBarIcon: ProdukTabBarIcon,
         }}>
-        {() => (
-          <FadeScreen isDark={isDark}>
-            <ManajemenProdukScreen isDark={isDark} />
-          </FadeScreen>
-        )}
+        {renderManajemenProdukScreen}
       </Tab.Screen>
       <Tab.Screen
         name="Profil"
         options={{
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
-          )
+          tabBarIcon: ProfileTabBarIcon,
         }}>
-        {() => (
-          <FadeScreen isDark={isDark}>
-            <ProfileScreen isDark={isDark} />
-          </FadeScreen>
-        )}
+        {renderProfileScreen}
       </Tab.Screen>
     </Tab.Navigator>
   );
@@ -146,8 +163,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  screenContainerLight: {
+    backgroundColor: '#f2f2f2',
+  },
+  screenContainerDark: {
+    backgroundColor: '#121212',
+  },
   screenText: {
     fontSize: 24,
     fontWeight: 'bold',
+  },
+  screenTextLight: {
+    color: '#000',
+  },
+  screenTextDark: {
+    color: '#fff',
+  },
+  headerRightButton: {
+    marginRight: 16,
   },
 });

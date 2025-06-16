@@ -1,13 +1,19 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Image, useColorScheme, StatusBar, Animated, ActivityIndicator } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
-import { LinearGradient } from 'react-native-linear-gradient';
+// import MaskedView from '@react-native-masked-view/masked-view';
+// import { LinearGradient } from 'react-native-linear-gradient';
 import { colors } from '../../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import type { StackNavigationProp } from '@react-navigation/stack';
+
+type RootStackParamList = {
+  NavigationBottom: undefined;
+  Login: undefined;
+};
 
 export default function SplashScreen() { // navigation prop tidak perlu di-destructure di sini jika menggunakan useNavigation
-  const navigation = useNavigation(); // Dapatkan objek navigasi
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>(); // Dapatkan objek navigasi dengan tipe yang benar
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
@@ -55,13 +61,17 @@ export default function SplashScreen() { // navigation prop tidak perlu di-destr
 
           if (userToken) {
             // Token ditemukan, pengguna sudah login. Arahkan ke NavigationBottom.
-            navigation.replace('NavigationBottom');
+            if ((navigation as any).replace) {
+              (navigation as any).replace('NavigationBottom');
+            } else if ((navigation as any).navigate) {
+              (navigation as any).navigate('NavigationBottom');
+            }
           } else {
             // Token tidak ditemukan, pengguna belum login. Arahkan ke Login.
-            navigation.replace('Login');
+            navigation.navigate('Login');
           }
         } catch (e) {
-          console.error("Gagal memuat token dari penyimpanan:", e);
+          console.error('Gagal memuat token dari penyimpanan:', e);
           // Jika ada error, tetap arahkan ke Login sebagai fallback
           navigation.replace('Login');
         }
@@ -127,22 +137,22 @@ export default function SplashScreen() { // navigation prop tidak perlu di-destr
   );
 }
 
-type GradientColorProps = {
-  text: string;
-};
+// type GradientColorProps = {
+//   text: string;
+// };
 
-const GradientColor = ({ text }: GradientColorProps) => {
-  return (
-    <MaskedView maskElement={<Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold',fontSize:20 }}>{text}</Text>}>
-      <LinearGradient
-        colors={['#FFAA01', '#1F6361']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}>
-        <Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold', fontSize:30 }}>{text}</Text>
-      </LinearGradient>
-    </MaskedView>
-  );
-}
+// const GradientColor = ({ text }: GradientColorProps) => {
+//   return (
+//     <MaskedView maskElement={<Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold',fontSize:20 }}>{text}</Text>}>
+//       <LinearGradient
+//         colors={['#FFAA01', '#1F6361']}
+//         start={{ x: 0, y: 0 }}
+//         end={{ x: 1, y: 0 }}>
+//         <Text style={{ textAlign: 'center', fontFamily:'Poppins-SemiBold', fontSize:30 }}>{text}</Text>
+//       </LinearGradient>
+//     </MaskedView>
+//   );
+// }
 
 const styles = StyleSheet.create({
   container: {
@@ -207,5 +217,5 @@ const styles = StyleSheet.create({
   },
   activityIndicator: {
     marginTop: 50, // Sesuaikan posisi indikator agar terlihat baik
-  }
+  },
 });
