@@ -4,19 +4,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// const ScreenPlaceholder = ({ title, isDark }: { title: string, isDark: boolean }) => (
-//   <View style={[styles.screenContainer, isDark ? styles.screenContainerDark : styles.screenContainerLight]}>
-//     <Text style={[styles.screenText, isDark ? styles.screenTextDark : styles.screenTextLight]}>{title}</Text>
-//   </View>
-// );
 import DashboardScreen from '../DashboardScreen/Dashboard';
 import ManajemenMitraScreen from '../DashboardScreen/ManajemenMitra';
 import ManajemenProdukScreen from '../DashboardScreen/ManajemenProduk';
 import ProfileScreen from '../DashboardScreen/Profile';
-// const DashboardScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Dashboard" isDark={isDark} />;
-// const ManajemenMitraScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Manajemen Mitra" isDark={isDark} />;
-// const ManajemenProdukScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Manajemen Produk" isDark={isDark} />;
-// const ProfileScreen = ({ isDark }: { isDark: boolean }) => <ScreenPlaceholder title="Profil" isDark={isDark} />;
 
 function FadeScreen({ children }: { children: React.ReactNode }) {
   const isFocused = useIsFocused();
@@ -39,7 +30,6 @@ function FadeScreen({ children }: { children: React.ReactNode }) {
 
 const Tab = createBottomTabNavigator();
 
-// Tab bar icon components moved outside NavigationBottom
 const DashboardTabBarIcon = ({ focused, color }: { focused: boolean; color: string }) => (
   <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
 );
@@ -68,7 +58,7 @@ export default function NavigationBottom() {
       accessibilityLabel="Toggle dark mode">
       <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={isDark ? '#FFAA01' : '#18181b'} />
     </TouchableOpacity>
-  ), [isDark]);
+  ), [isDark, setTheme]);
 
   const renderDashboardScreen = useCallback(() => (
     <FadeScreen>
@@ -96,6 +86,7 @@ export default function NavigationBottom() {
 
   return (
     <Tab.Navigator
+      sceneContainerStyle={{ backgroundColor: isDark ? '#121212' : '#f2f2f2' }}
       screenOptions={{
         headerStyle: {
           backgroundColor: isDark ? '#18181b' : '#fff',
@@ -157,27 +148,6 @@ export default function NavigationBottom() {
 const styles = StyleSheet.create({
   animatedContainer: {
     flex: 1,
-  },
-  screenContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  screenContainerLight: {
-    backgroundColor: '#f2f2f2',
-  },
-  screenContainerDark: {
-    backgroundColor: '#121212',
-  },
-  screenText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  screenTextLight: {
-    color: '#000',
-  },
-  screenTextDark: {
-    color: '#fff',
   },
   headerRightButton: {
     marginRight: 16,
