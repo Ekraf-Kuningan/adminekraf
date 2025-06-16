@@ -1,16 +1,27 @@
-import { StyleSheet, useColorScheme, TouchableOpacity, Animated, View } from 'react-native';
-import React, { useState, useRef, useCallback } from 'react';
+import {
+  StyleSheet,
+  useColorScheme,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
+import React, { useState, useRef, useCallback, ReactNode } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme, useIsFocused, getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+  useIsFocused,
+  getFocusedRouteNameFromRoute,
+  RouteProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Import layar otentikasi dan splash screen
+// Import screens
 import SplashScreen from './app/layout/Splashscreen';
 import Login from './app/Auth/Login';
 import ResetPassword from './app/Auth/ResetPassword';
-
-// Import layar untuk Tab Navigator
 import DashboardScreen from './app/DashboardScreen/Dashboard';
 import ManajemenMitraScreen from './app/DashboardScreen/ManajemenMitra';
 import ManajemenProdukScreen from './app/DashboardScreen/ManajemenProduk';
@@ -18,18 +29,41 @@ import ProfileScreen from './app/DashboardScreen/Profile';
 
 import './global.css';
 
+// Define stack and tab navigators
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Komponen untuk efek fade pada layar
-function FadeScreen({ children }) {
+// Define prop types for components
+interface FadeScreenProps {
+  children: ReactNode;
+}
+
+interface TabBarIconProps {
+  focused: boolean;
+  color: string;
+  size: number;
+}
+
+interface MainTabNavigatorProps {
+  isDark: boolean;
+}
+
+interface HeaderThemeToggleButtonProps {
+  isDark: boolean;
+  onPress: () => void;
+}
+
+// --- Reusable Components ---
+
+// FadeScreen: Component for fade-in/out animation on screen focus
+function FadeScreen({ children }: FadeScreenProps) {
   const isFocused = useIsFocused();
   const opacity = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     Animated.timing(opacity, {
       toValue: isFocused ? 1 : 0,
-      duration: 200,
+      duration: 300,
       useNativeDriver: true,
     }).start();
   }, [isFocused, opacity]);
@@ -41,42 +75,39 @@ function FadeScreen({ children }) {
   );
 }
 
-// Komponen ikon untuk tab bar
-const DashboardTabBarIcon = ({ focused, color }) => (
+// --- Tab Bar Icons ---
+// Note: Size is automatically provided by the navigator, but we don't use it here.
+const DashboardTabBarIcon = ({ focused, color }: TabBarIconProps) => (
   <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
 );
-const MitraTabBarIcon = ({ focused, color }) => (
+const MitraTabBarIcon = ({ focused, color }: TabBarIconProps) => (
   <Ionicons name={focused ? 'business' : 'business-outline'} size={24} color={color} />
 );
-const ProdukTabBarIcon = ({ focused, color }) => (
+const ProdukTabBarIcon = ({ focused, color }: TabBarIconProps) => (
   <Ionicons name={focused ? 'cube' : 'cube-outline'} size={24} color={color} />
 );
-const ProfileTabBarIcon = ({ focused, color }) => (
+const ProfileTabBarIcon = ({ focused, color }: TabBarIconProps) => (
   <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
 );
 
-// Komponen Tab Navigator utama
-function MainTabNavigator({ isDark }) {
-  const renderDashboardScreen = useCallback(() => (
-    <FadeScreen><DashboardScreen isDark={isDark} /></FadeScreen>
-  ), [isDark]);
+// HeaderThemeToggleButton: Moved outside the App component to prevent re-creation on every render
+const HeaderThemeToggleButton = ({ isDark, onPress }: HeaderThemeToggleButtonProps) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={styles.headerRightButton}
+    accessibilityLabel="Toggle dark mode">
+    <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={isDark ? '#FFAA01' : '#18181b'} />
+  </TouchableOpacity>
+);
 
-  const renderManajemenMitraScreen = useCallback(() => (
-    <FadeScreen><ManajemenMitraScreen isDark={isDark} /></FadeScreen>
-  ), [isDark]);
+// --- Navigators ---
 
-  const renderManajemenProdukScreen = useCallback(() => (
-    <FadeScreen><ManajemenProdukScreen isDark={isDark} /></FadeScreen>
-  ), [isDark]);
-
-  const renderProfileScreen = useCallback(() => (
-    <FadeScreen><ProfileScreen isDark={isDark} /></FadeScreen>
-  ), [isDark]);
-
+// MainTabNavigator: The bottom tab navigator component
+function MainTabNavigator({ isDark }: MainTabNavigatorProps) {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false, // Header akan di-handle oleh Stack Navigator
+        headerShown: false,
         tabBarActiveTintColor: '#FFAA01',
         tabBarInactiveTintColor: '#BEBEBE',
         tabBarStyle: {
@@ -93,27 +124,34 @@ function MainTabNavigator({ isDark }) {
         },
       }}
     >
-      <Tab.Screen name="Dashboard" component={renderDashboardScreen} options={{ tabBarIcon: DashboardTabBarIcon }} />
-      <Tab.Screen name="Manajemen Mitra" component={renderManajemenMitraScreen} options={{ tabBarIcon: MitraTabBarIcon }} />
-      <Tab.Screen name="Manajemen Produk" component={renderManajemenProdukScreen} options={{ tabBarIcon: ProdukTabBarIcon }} />
-      <Tab.Screen name="Profil" component={renderProfileScreen} options={{ tabBarIcon: ProfileTabBarIcon }} />
+      <Tab.Screen name="Dashboard" options={{ tabBarIcon: DashboardTabBarIcon }}>
+        {() => <FadeScreen><DashboardScreen isDark={isDark} /></FadeScreen>}
+      </Tab.Screen>
+      <Tab.Screen name="Manajemen Mitra" options={{ tabBarIcon: MitraTabBarIcon }}>
+        {() => <FadeScreen><ManajemenMitraScreen isDark={isDark} /></FadeScreen>}
+      </Tab.Screen>
+      <Tab.Screen name="Manajemen Produk" options={{ tabBarIcon: ProdukTabBarIcon }}>
+       {() => <FadeScreen><ManajemenProdukScreen isDark={isDark} /></FadeScreen>}
+      </Tab.Screen>
+      <Tab.Screen name="Profil" options={{ tabBarIcon: ProfileTabBarIcon }}>
+        {() => <FadeScreen><ProfileScreen isDark={isDark} /></FadeScreen>}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
 
-// Komponen App utama
+// --- Main App Component ---
 export default function App() {
-  const navigationRef = useRef(null);
   const systemColorScheme = useColorScheme();
   const [theme, setTheme] = useState(systemColorScheme === 'dark' ? 'dark' : 'light');
   const isDark = theme === 'dark';
 
-  // Mendefinisikan tema terang dan gelap
+  // Custom themes
   const MyTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: '#f2f2f2' } };
   const MyDarkTheme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: '#121212' } };
 
-  // Fungsi untuk mendapatkan judul header berdasarkan route yang aktif
-  const getHeaderTitle = (route) => {
+  // Function to get header title from the route
+  const getHeaderTitle = (route: RouteProp<ParamListBase, 'MainApp'>) => {
     const routeName = getFocusedRouteNameFromRoute(route) ?? 'Dashboard';
     switch (routeName) {
       case 'Manajemen Mitra': return 'Manajemen Mitra';
@@ -125,11 +163,22 @@ export default function App() {
     }
   };
 
+  // Memoized theme toggle function
+  const toggleTheme = useCallback(() => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  }, []);
+
+  // Memoized headerRight component to avoid redefining on every render
+  const renderHeaderRight = useCallback(
+    () => <HeaderThemeToggleButton isDark={isDark} onPress={toggleTheme} />,
+    [isDark, toggleTheme]
+  );
+
   return (
-    <NavigationContainer ref={navigationRef} theme={isDark ? MyDarkTheme : MyTheme}>
+    <NavigationContainer theme={isDark ? MyDarkTheme : MyTheme}>
       <Stack.Navigator initialRouteName="SplashScreen">
         <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ResetPassword" component={ResetPassword} options={{ headerShown: false }}/>
+        <Stack.Screen name="ResetPassword" component={ResetPassword} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen
           name="MainApp"
@@ -137,14 +186,7 @@ export default function App() {
             headerTitle: getHeaderTitle(route),
             headerStyle: { backgroundColor: isDark ? '#18181b' : '#fff' },
             headerTitleStyle: { color: isDark ? '#fff' : '#18181b' },
-            headerRight: () => (
-              <TouchableOpacity
-                onPress={() => setTheme(isDark ? 'light' : 'dark')}
-                style={styles.headerRightButton}
-                accessibilityLabel="Toggle dark mode">
-                <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={isDark ? '#FFAA01' : '#18181b'} />
-              </TouchableOpacity>
-            ),
+            headerRight: renderHeaderRight,
           })}
         >
           {() => <MainTabNavigator isDark={isDark} />}
@@ -154,11 +196,12 @@ export default function App() {
   );
 }
 
+// --- Styles ---
 const styles = StyleSheet.create({
-    animatedContainer: {
-        flex: 1,
-    },
-    headerRightButton: {
-        marginRight: 16,
-    },
+  animatedContainer: {
+    flex: 1,
+  },
+  headerRightButton: {
+    marginRight: 16,
+  },
 });
