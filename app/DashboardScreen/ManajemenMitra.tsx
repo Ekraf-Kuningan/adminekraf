@@ -149,7 +149,7 @@ const ManajemenMitraScreen = () => {
       </SafeAreaView>
     );
   }
-  
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <FlatList
@@ -157,21 +157,16 @@ const ManajemenMitraScreen = () => {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
         ListHeaderComponent={
           <>
-            <View className="p-4 bg-gray-100">
-                <Text className="text-2xl font-bold text-gray-800">Dashboard</Text>
-            </View>
-
-            <View className="bg-yellow-400 p-4">
+          <View className="pt-8" />
+            <View className="bg-yellow-400 rounded-2xl mx-4 p-4 shadow-md">
               <Text className="text-xl font-bold text-white">Admin Panel</Text>
-              <Text className="text-sm text-white">Dashboard / Daftar Mitra</Text>
-            </View>
-            
-            <View className="bg-yellow-400 p-4 pt-2">
-                 <View className="flex-row justify-between space-x-3 mt-2">
-                    <StatCard count={stats.total} label="Mitra Terdaftar" color="bg-yellow-500" />
-                    <StatCard count={stats.aktif} label="Aktif" color="bg-yellow-500" />
-                    <StatCard count={stats.nonAktif} label="Non-aktif" color="bg-yellow-500" />
-                </View>
+              <Text className="text-sm text-white mb-4">Dashboard / Daftar Mitra</Text>
+
+              <View className="flex-row justify-between space-x-3">
+                <StatCard count={stats.total} label="Mitra" color="bg-yellow-500" />
+                <StatCard count={stats.aktif} label="Aktif" color="bg-yellow-500" />
+                <StatCard count={stats.nonAktif} label="Non-aktif" color="bg-yellow-500" />
+              </View>
             </View>
 
             <View className="p-4 bg-gray-100">
@@ -189,7 +184,7 @@ const ManajemenMitraScreen = () => {
                 <FilterButton label="Aktif" isActive={filter === 'Aktif'} onPress={() => setFilter('Aktif')} />
                 <FilterButton label="NonAktif" isActive={filter === 'NonAktif'} onPress={() => setFilter('NonAktif')} />
               </View>
-              
+
               <Text className="text-xl font-bold text-gray-800 mt-6 mb-2">Daftar Mitra</Text>
             </View>
           </>
