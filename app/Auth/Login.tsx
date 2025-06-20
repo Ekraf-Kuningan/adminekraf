@@ -53,7 +53,7 @@ export default function Login({ navigation }: { navigation: any }) {
         await AsyncStorage.setItem('userData', JSON.stringify(user)); // Simpan data user jika diperlukan
         Alert.alert('Sukses', message);
 
-        navigation.replace('NavigationBottom'); // Ganti layar ke halaman utama setelah login
+        navigation.replace('MainApp'); // Ganti layar ke halaman utama setelah login
       } else {
         // Ini mungkin tidak akan terpanggil karena axios akan throw error untuk status non-2xx
         Alert.alert('Login Gagal', response.data.message || 'Terjadi kesalahan saat login.');

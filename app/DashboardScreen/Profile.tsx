@@ -60,6 +60,7 @@ const ProfileScreen = ({ isDark }: { isDark: boolean }) => {
           text: 'Logout',
           onPress: async () => {
             try {
+              await AsyncStorage.removeItem('userToken');
               await AsyncStorage.removeItem('userData');
               navigation.navigate('Login');
             } catch (e) {
