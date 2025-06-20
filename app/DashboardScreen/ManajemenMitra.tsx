@@ -29,7 +29,7 @@ const FilterButton = ({ label, isActive, onPress }) => (
 );
 
 const formatDate = (dateString) => {
-  if (!dateString) return 'Belum Verifikasi';
+  if (!dateString) {return 'Belum Verifikasi';}
   const date = new Date(dateString);
   return date.toLocaleDateString('id-ID', {
     day: 'numeric',
@@ -84,12 +84,12 @@ const ManajemenMitraScreen = () => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem('userToken');
-      if (!token) throw new Error('Token tidak ditemukan');
+      if (!token) {throw new Error('Token tidak ditemukan');}
       
       const response = await fetch('https://ekraf.asepharyana.tech/api/users', {
         headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       });
-      if (!response.ok) throw new Error('Gagal mengambil data mitra');
+      if (!response.ok) {throw new Error('Gagal mengambil data mitra');}
       
       const result = await response.json();
       const umkmUsers = result.data.filter(user => user.tbl_level.level === 'UMKM');
@@ -110,8 +110,8 @@ const ManajemenMitraScreen = () => {
   const filteredMitra = useMemo(() => {
     return allMitra
       .filter(mitra => {
-        if (filter === 'Aktif') return !!mitra.verifiedAt;
-        if (filter === 'NonAktif') return !mitra.verifiedAt;
+        if (filter === 'Aktif') {return !!mitra.verifiedAt;}
+        if (filter === 'NonAktif') {return !mitra.verifiedAt;}
         return true;
       })
       .filter(mitra =>
