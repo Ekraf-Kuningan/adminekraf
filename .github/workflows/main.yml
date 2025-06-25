@@ -1,0 +1,118 @@
+name: Auto Increment Release Android AAB and APK (npm)
+
+on:
+  push:
+    branches:
+      - main # Ganti dengan branch utama Anda jika berbeda
+
+jobs:
+  build_and_auto_release_android:
+    name: Build Android AAB & APK and Auto Increment Release (npm)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      LIGHTNINGCSS_PLATFORM: wasm32
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Next Version
+        id: get_next_version
+        run: |
+          LATEST_TAG=$(gh release list --limit 1 --json tagName -q '.[0].tagName' || echo "v0.0.0")
+
+          if [[ "$LATEST_TAG" == "null" || -z "$LATEST_TAG" ]]; then
+            LATEST_TAG="v0.0.0"
+          fi
+          echo "Latest Release Tag: $LATEST_TAG"
+
+          VERSION_CORE=${LATEST_TAG#v}
+
+          IFS='.' read -r -a VERSION_PARTS <<< "$VERSION_CORE"
+          MAJOR=${VERSION_PARTS[0]:-0}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
+
+          PATCH=$((PATCH + 1))
+
+          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          echo "Calculated New Version: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_name=$MAJOR.$MINOR.$PATCH" >> $GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Update Android Version in build.gradle
+        run: |
+          VERSION_NAME_FROM_STEP="${{ steps.get_next_version.outputs.version_name }}"
+          VERSION_CODE_FROM_RUN_NUMBER=${{ github.run_number }}
+          echo "Updating android/app/build.gradle with versionName: $VERSION_NAME_FROM_STEP and versionCode: $VERSION_CODE_FROM_RUN_NUMBER"
+          GRADLE_FILE_PATH="android/app/build.gradle"
+          sed -i "s/versionName \".*\"/versionName \"$VERSION_NAME_FROM_STEP\"/" $GRADLE_FILE_PATH
+          sed -i "s/versionCode .*/versionCode $VERSION_CODE_FROM_RUN_NUMBER/" $GRADLE_FILE_PATH
+          echo "build.gradle updated."
+        working-directory: ./
+
+      - name: Decode Keystore and Place it
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_FILE_PATH: android/app/release-keystore.jks
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > $KEYSTORE_FILE_PATH
+          echo "Keystore file created at $KEYSTORE_FILE_PATH"
+
+      - name: Set Android Signing Environment Variables
+        run: |
+          echo "ANDROID_KEYSTORE_PATH=release-keystore.jks" >> $GITHUB_ENV 
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Build Android App Bundle (AAB)
+        run: ./gradlew bundleRelease --no-daemon
+        working-directory: ./android
+
+      - name: Build Android APK
+        run: ./gradlew assembleRelease --no-daemon
+        working-directory: ./android
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_next_version.outputs.version }}
+          name: Release ${{ steps.get_next_version.outputs.version }} (AAB + APK)
+          body: |
+            Rilis otomatis AAB dan APK versi ${{ steps.get_next_version.outputs.version }}
+            Dipicu oleh commit: ${{ github.sha }}
+            Version Code (Android): ${{ github.run_number }}
+          draft: false
+          prerelease: false
+          files: |
+            android/app/build/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/apk/release/app-release.apk
