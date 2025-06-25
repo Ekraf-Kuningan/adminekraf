@@ -53,12 +53,21 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Clean npm cache and node_modules
+        run: |
+          npm cache clean --force
+          rm -rf node_modules
+        # Jalankan ini sebelum install dependencies untuk memastikan bersih
+          
       - name: Install dependencies
         # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 dan NATIVEWIND_OUTPUT: css tersedia saat instalasi
         env:
           LIGHTNINGCSS_PLATFORM: wasm32
-          NATIVEWIND_OUTPUT: css
         run: npm install
+
+      - name: Rebuild native modules (optional, but can help)
+        run: npm rebuild
+        # Ini akan mencoba membangun ulang modul native jika ada
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -96,7 +105,7 @@ jobs:
           echo "ANDROID_KEYSTORE_PATH=release-keystore.jks" >> $GITHUB_ENV 
           echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
           echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
-          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV # Perbaikan: Gunakan ANDROID_KEY_PASSWORD
 
       - name: Build Android App Bundle (AAB)
         # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 dan NATIVEWIND_OUTPUT: css tersedia saat build AAB
