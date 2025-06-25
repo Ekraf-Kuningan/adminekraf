@@ -14,6 +14,8 @@ jobs:
     env:
       # Variabel lingkungan global untuk seluruh job
       LIGHTNINGCSS_PLATFORM: wasm32
+      # Menambahkan NATIVEWIND_OUTPUT untuk mengatasi masalah lightningcss native module
+      NATIVEWIND_OUTPUT: css
 
     steps:
       - name: Checkout code
@@ -52,9 +54,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 tersedia saat instalasi
+        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 dan NATIVEWIND_OUTPUT: css tersedia saat instalasi
         env:
           LIGHTNINGCSS_PLATFORM: wasm32
+          NATIVEWIND_OUTPUT: css
         run: npm install
 
       - name: Setup Java
@@ -96,16 +99,18 @@ jobs:
           echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Build Android App Bundle (AAB)
-        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 tersedia saat build AAB
+        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 dan NATIVEWIND_OUTPUT: css tersedia saat build AAB
         env:
           LIGHTNINGCSS_PLATFORM: wasm32
+          NATIVEWIND_OUTPUT: css
         run: ./gradlew bundleRelease --no-daemon
         working-directory: ./android
 
       - name: Build Android APK
-        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 tersedia saat build APK
+        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 dan NATIVEWIND_OUTPUT: css tersedia saat build APK
         env:
           LIGHTNINGCSS_PLATFORM: wasm32
+          NATIVEWIND_OUTPUT: css
         run: ./gradlew assembleRelease --no-daemon
         working-directory: ./android
 
