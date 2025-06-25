@@ -92,7 +92,7 @@ const MitraCard = ({ mitra, onPress }: MitraCardProps) => {
 
 // Tipe untuk navigasi
 type MitraNavProp = NavigationProp<{
-    EditMitra: { mitra: any }; // Ganti `any` dengan tipe Mitra yang lebih spesifik jika ada
+    EditMitraScreen: { mitra: any }; // Ganti `any` dengan tipe Mitra yang lebih spesifik jika ada
 }>;
 
 const ManajemenMitraScreen = () => {
@@ -208,7 +208,7 @@ const ManajemenMitraScreen = () => {
           <MitraCard
             mitra={item}
             isDark={isDark}
-            onPress={() => navigation.navigate('EditMitra', { mitra: item })}
+            onPress={() => navigation.navigate('EditMitraScreen', { mitra: item })}
           />
         )}
         keyExtractor={(item) => item.id_user.toString()}

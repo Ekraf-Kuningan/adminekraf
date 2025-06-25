@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type FormInputProps = {
   label: string;
@@ -33,21 +32,10 @@ const FormInput: React.FC<FormInputProps> = ({ label, value, onChangeText, ...pr
 
 
 
-type Mitra = {
-  id_user: string;
-  nama_user: string;
-  email: string;
-  nohp: string;
-  // tambahkan properti lain jika ada
-};
 
-type EditMitraScreenRouteParams = {
-  mitra: Mitra;
-};
 
-type EditMitraScreenProps = NativeStackScreenProps<{ EditMitraScreen: EditMitraScreenRouteParams }, 'EditMitraScreen'>;
 
-const EditMitraScreen: React.FC<EditMitraScreenProps> = ({ route, navigation }) => {
+const EditMitraScreen: React.FC<any> = ({ route, navigation }) => {
   const { mitra } = route.params;
 
   const [namaUser, setNamaUser] = useState(mitra.nama_user);
