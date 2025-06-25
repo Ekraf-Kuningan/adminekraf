@@ -84,6 +84,15 @@ export interface KategoriUsaha {
   image: string;
 }
 
+
+/**
+ * Tipe data payload untuk membuat atau memperbarui Kategori Usaha.
+ */
+export interface KategoriUsahaPayload {
+    nama_kategori: string;
+    image: string; // URL dari gambar yang sudah di-upload
+}
+
 export interface TblLevel {
     id_level: number;
     level: string;

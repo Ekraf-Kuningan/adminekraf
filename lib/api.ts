@@ -283,19 +283,53 @@ export const articlesApi = {
 // ===================================
 // KATEGORI USAHA API - Privat
 // ===================================
+// export const kategoriUsahaApi = {
+//   getById: (id: number) =>
+//     publicClient
+//       .get<T.ApiResponse<T.KategoriUsaha>>(`/kategori-usaha/${id}`)
+//       .then(res => res.data.data)
+//       .catch(e => handleError(e, `mengambil kategori usaha #${id}`)),
+
+//   update: (id: number, data: {nama_kategori_usaha: string}) =>
+//     privateClient
+//       .put<T.ApiResponse<T.KategoriUsaha>>(`/kategori-usaha/${id}`, data)
+//       .then(res => res.data)
+//       .catch(e => handleError(e, `memperbarui kategori usaha #${id}`)),
+
+//   delete: (id: number) =>
+//     privateClient
+//       .delete<T.ApiMessageResponse>(`/kategori-usaha/${id}`)
+//       .then(res => res.data)
+//       .catch(e => handleError(e, `menghapus kategori usaha #${id}`)),
+// };
 export const kategoriUsahaApi = {
+  /**
+   * Membuat kategori usaha baru.
+   */
+  create: (data: T.KategoriUsahaPayload) =>
+    privateClient
+      .post<T.ApiResponse<T.KategoriUsaha>>('/kategori-usaha', data)
+      .then(res => res.data)
+      .catch(e => handleError(e, 'membuat kategori usaha')),
+
   getById: (id: number) =>
     publicClient
       .get<T.ApiResponse<T.KategoriUsaha>>(`/kategori-usaha/${id}`)
       .then(res => res.data.data)
       .catch(e => handleError(e, `mengambil kategori usaha #${id}`)),
 
-  update: (id: number, data: {nama_kategori_usaha: string}) =>
+  /**
+   * Memperbarui kategori usaha. Menerima data parsial.
+   */
+  update: (id: number, data: Partial<T.KategoriUsahaPayload>) =>
     privateClient
       .put<T.ApiResponse<T.KategoriUsaha>>(`/kategori-usaha/${id}`, data)
       .then(res => res.data)
       .catch(e => handleError(e, `memperbarui kategori usaha #${id}`)),
 
+  /**
+   * Menghapus kategori usaha.
+   */
   delete: (id: number) =>
     privateClient
       .delete<T.ApiMessageResponse>(`/kategori-usaha/${id}`)

@@ -180,7 +180,9 @@ const ManajemenProdukScreen = () => {
                         <Icon name="search" size={20} color={placeholderColor} className="ml-3" />
                         <TextInput placeholder="Cari produk..." onSubmitEditing={() => {setPage(1); fetchProducts(1, true);}} placeholderTextColor={placeholderColor} value={searchQuery} onChangeText={setSearchQuery} className="text-base flex-1 text-black dark:text-white h-12 px-2" />
                     </View>
-                    <TouchableOpacity onPress={() => navigation.navigate('FormProdukScreen', {})} className="bg-yellow-500 p-3.5 rounded-lg shadow-md shadow-yellow-400/50"><Icon name="plus" size={24} color="white" /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('FormProdukScreen', {})} className="bg-yellow-500 p-2.5 rounded-full shadow-md">
+                              <Icon name="plus" size={22} color="white" />
+                            </TouchableOpacity>
                 </View>
                 {error && <View className="px-4"><Text className="text-red-500 text-center">{error}</Text></View>}
             </>
