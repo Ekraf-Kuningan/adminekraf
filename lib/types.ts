@@ -125,6 +125,7 @@ export interface ProductPayload {
   nohp?: string;
   id_kategori_usaha: number;
   gambar: string; // Tipe data string untuk URL gambar
+  status_produk?: 'disetujui' | 'pending' | 'ditolak' | 'tidak aktif';
 }
 export interface OlshopLink {
     id_link: number;

@@ -30,16 +30,15 @@ type FormRouteProp = RouteProp<{ params: { product?: Product } }, 'params'>;
 interface FormInputProps extends TextInputProps {
   label: string;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FormInput = ({ label, ...props }: FormInputProps) => {
   const { isDark } = useTheme();
   const placeholderColor = isDark ? '#A1A1AA' : '#6B7281';
-  const labelColor = isDark ? 'text-gray-300' : 'text-gray-600';
-  const inputContainerStyle = "bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700";
-  const inputTextStyle = "p-3 text-base text-black dark:text-white";
+  const inputContainerStyle = 'bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700';
+  const inputTextStyle = 'p-3 text-base text-black dark:text-white';
 
   return (
     <View>
-      <Text className={`text-sm font-semibold mb-2 ${labelColor}`}>{label}</Text>
       <View className={inputContainerStyle}>
         <TextInput
           placeholderTextColor={placeholderColor}
@@ -123,7 +122,7 @@ const FormProdukScreen = () => {
         setLoading(false);
     }
   };
-  
+
   const placeholderColor = isDark ? '#A1A1AA' : '#6B7281';
 
   return (
@@ -158,7 +157,7 @@ const FormProdukScreen = () => {
             {/* Form Inputs */}
             <FormInput label="Nama Produk" placeholder="Contoh: Kopi Gula Aren" value={formData.nama_produk} onChangeText={v => handleInputChange('nama_produk', v)} />
             <FormInput label="Nama Pelaku Usaha" placeholder="Nama Anda atau Brand" value={formData.nama_pelaku} onChangeText={v => handleInputChange('nama_pelaku', v)} />
-            <FormInput label="Deskripsi (Opsional)" placeholder="Jelaskan keunikan produk Anda..." value={formData.deskripsi} multiline numberOfLines={4} style={{height: 120, textAlignVertical: 'top'}} />
+            <FormInput label="Deskripsi (Opsional)" placeholder="Jelaskan keunikan produk Anda..." value={formData.deskripsi} multiline numberOfLines={4} style={{ height: 120, textAlignVertical: 'top' }} />
             <FormInput label="Harga" placeholder="Contoh: 50000" value={String(formData.harga === 0 ? '' : formData.harga)} onChangeText={v => handleInputChange('harga', Number(v.replace(/[^0-9]/g, '')))} keyboardType="numeric" />
             <FormInput label="Stok" placeholder="Jumlah stok tersedia" value={String(formData.stok === 0 ? '' : formData.stok)} onChangeText={v => handleInputChange('stok', Number(v.replace(/[^0-9]/g, '')))} keyboardType="numeric" />
             <FormInput label="No. HP (Opsional)" placeholder="08xxxxxxxxxx" value={formData.nohp || ''} onChangeText={v => handleInputChange('nohp', v)} keyboardType="phone-pad" />
