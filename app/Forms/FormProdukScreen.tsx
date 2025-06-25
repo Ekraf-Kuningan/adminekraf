@@ -11,21 +11,46 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  StyleSheet,
+  TextInputProps,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
-// Hapus import RNPickerSelect
-// import RNPickerSelect from 'react-native-picker-select';
-
-// Impor komponen kustom yang baru
 import { CustomPicker } from '../../components/CustomPicker';
 import { productsApi, uploaderApi, masterDataApi } from '../../lib/api';
 import { Product, ProductPayload, KategoriUsaha } from '../../lib/types';
 import { useTheme } from '../Context/ThemeContext';
-import { StyleSheet } from 'react-native';
 
 type FormRouteProp = RouteProp<{ params: { product?: Product } }, 'params'>;
+
+/**
+ * Komponen Input Kustom untuk konsistensi form.
+ */
+interface FormInputProps extends TextInputProps {
+  label: string;
+}
+const FormInput = ({ label, ...props }: FormInputProps) => {
+  const { isDark } = useTheme();
+  const placeholderColor = isDark ? '#A1A1AA' : '#6B7281';
+  const labelColor = isDark ? 'text-gray-300' : 'text-gray-600';
+  const inputContainerStyle = "bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700";
+  const inputTextStyle = "p-3 text-base text-black dark:text-white";
+
+  return (
+    <View>
+      <Text className={`text-sm font-semibold mb-2 ${labelColor}`}>{label}</Text>
+      <View className={inputContainerStyle}>
+        <TextInput
+          placeholderTextColor={placeholderColor}
+          className={inputTextStyle}
+          {...props}
+        />
+      </View>
+    </View>
+  );
+};
+
 
 const FormProdukScreen = () => {
   const navigation = useNavigation();
@@ -37,7 +62,7 @@ const FormProdukScreen = () => {
 
   const [formData, setFormData] = useState<ProductPayload>({
     nama_produk: existingProduct?.nama_produk || '',
-    nama_pelaku: existingProduct?.nama_pelaku || '', // Sebaiknya diisi otomatis dari data user login jika ada
+    nama_pelaku: existingProduct?.nama_pelaku || '',
     deskripsi: existingProduct?.deskripsi || '',
     harga: existingProduct?.harga || 0,
     stok: existingProduct?.stok || 0,
@@ -63,9 +88,7 @@ const FormProdukScreen = () => {
 
   const handleImagePick = async () => {
     const result = await launchImageLibrary({ mediaType: 'photo', quality: 0.7 });
-    if (result.didCancel || result.errorCode) {
-      return;
-    }
+    if (result.didCancel || result.errorCode) { return; }
     const asset = result.assets?.[0];
     if (asset) {
       setImageAsset(asset);
@@ -78,26 +101,21 @@ const FormProdukScreen = () => {
         Alert.alert('Input Tidak Lengkap', 'Nama produk, harga, dan kategori wajib diisi.');
         return;
     }
-
     setLoading(true);
     setError(null);
     let finalPayload = { ...formData };
-
     try {
         if (imageAsset) {
             const imageUrl = await uploaderApi.uploadImage(imageAsset);
             finalPayload.gambar = imageUrl;
         }
-
         if (isEditMode) {
             await productsApi.update(existingProduct.id_produk, finalPayload);
         } else {
             await productsApi.create(finalPayload);
         }
-
         Alert.alert('Sukses', `Produk berhasil ${isEditMode ? 'diperbarui' : 'dibuat'}.`);
         navigation.goBack();
-
     } catch (e: any) {
         setError(e.message);
         Alert.alert('Error', e.message);
@@ -105,55 +123,63 @@ const FormProdukScreen = () => {
         setLoading(false);
     }
   };
-
-  // Hapus pickerStyle karena sudah tidak digunakan
-  // const pickerStyle = { ... };
-
+  
   const placeholderColor = isDark ? '#A1A1AA' : '#6B7281';
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-100 dark:bg-zinc-900">
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-zinc-900">
+      {/* Header */}
+      <View className="flex-row items-center p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
+            <Icon name="arrow-left" size={24} color={isDark ? 'white' : 'black'} />
+        </TouchableOpacity>
+        <Text className="flex-1 text-xl font-bold text-slate-800 dark:text-slate-100 text-center mr-8">
+            {isEditMode ? 'Edit Produk' : 'Tambah Produk Baru'}
+        </Text>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View className="p-4">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="absolute top-4 left-4 z-10 p-2">
-                <Icon name="arrow-left" size={24} color={isDark ? 'white' : 'black'} />
-            </TouchableOpacity>
-            <Text className="text-2xl font-bold text-slate-800 dark:text-slate-100 text-center">
-                {isEditMode ? 'Edit Produk' : 'Tambah Produk Baru'}
-            </Text>
-        </View>
+        <View className="p-4 space-y-5">
+            {/* Image Picker */}
+            <View>
+              <Text className="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-300">Gambar Produk</Text>
+              <TouchableOpacity onPress={handleImagePick} className="items-center justify-center h-48 bg-gray-200 dark:bg-zinc-800 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-zinc-700">
+                  {formData.gambar ? (
+                      <Image source={{ uri: formData.gambar }} className="w-full h-full" resizeMode="cover" />
+                  ) : (
+                      <View className="items-center">
+                          <Icon name="camera" size={40} color={placeholderColor} />
+                          <Text className="mt-2 text-gray-500 dark:text-gray-400">Pilih Gambar</Text>
+                      </View>
+                  )}
+              </TouchableOpacity>
+            </View>
 
-        <View className="p-4 space-y-4">
-            <TouchableOpacity onPress={handleImagePick} className="items-center justify-center h-48 bg-gray-200 dark:bg-zinc-800 rounded-lg overflow-hidden">
-                {formData.gambar ? (
-                    <Image source={{ uri: formData.gambar }} className="w-full h-full" resizeMode="cover" />
-                ) : (
-                    <View className="items-center">
-                        <Icon name="camera" size={40} color={placeholderColor} />
-                        <Text className="mt-2 text-gray-500 dark:text-gray-400">Pilih Gambar Produk</Text>
-                    </View>
-                )}
-            </TouchableOpacity>
+            {/* Form Inputs */}
+            <FormInput label="Nama Produk" placeholder="Contoh: Kopi Gula Aren" value={formData.nama_produk} onChangeText={v => handleInputChange('nama_produk', v)} />
+            <FormInput label="Nama Pelaku Usaha" placeholder="Nama Anda atau Brand" value={formData.nama_pelaku} onChangeText={v => handleInputChange('nama_pelaku', v)} />
+            <FormInput label="Deskripsi (Opsional)" placeholder="Jelaskan keunikan produk Anda..." value={formData.deskripsi} multiline numberOfLines={4} style={{height: 120, textAlignVertical: 'top'}} />
+            <FormInput label="Harga" placeholder="Contoh: 50000" value={String(formData.harga === 0 ? '' : formData.harga)} onChangeText={v => handleInputChange('harga', Number(v.replace(/[^0-9]/g, '')))} keyboardType="numeric" />
+            <FormInput label="Stok" placeholder="Jumlah stok tersedia" value={String(formData.stok === 0 ? '' : formData.stok)} onChangeText={v => handleInputChange('stok', Number(v.replace(/[^0-9]/g, '')))} keyboardType="numeric" />
+            <FormInput label="No. HP (Opsional)" placeholder="08xxxxxxxxxx" value={formData.nohp || ''} onChangeText={v => handleInputChange('nohp', v)} keyboardType="phone-pad" />
 
-            <TextInput placeholder="Nama Produk" value={formData.nama_produk} onChangeText={v => handleInputChange('nama_produk', v)} placeholderTextColor={placeholderColor} className="bg-white dark:bg-zinc-800 p-3 rounded-lg text-black dark:text-white" />
-            <TextInput placeholder="Nama Pelaku Usaha" value={formData.nama_pelaku} onChangeText={v => handleInputChange('nama_pelaku', v)} placeholderTextColor={placeholderColor} className="bg-white dark:bg-zinc-800 p-3 rounded-lg text-black dark:text-white" />
-            <TextInput placeholder="Deskripsi (Opsional)" value={formData.deskripsi} onChangeText={v => handleInputChange('deskripsi', v)} placeholderTextColor={placeholderColor} multiline numberOfLines={4} className="bg-white dark:bg-zinc-800 p-3 rounded-lg text-black dark:text-white h-24" />
-            <TextInput placeholder="Harga (Contoh: 50000)" value={String(formData.harga)} onChangeText={v => handleInputChange('harga', Number(v.replace(/[^0-9]/g, '')))} placeholderTextColor={placeholderColor} keyboardType="numeric" className="bg-white dark:bg-zinc-800 p-3 rounded-lg text-black dark:text-white" />
-            <TextInput placeholder="Stok" value={String(formData.stok)} onChangeText={v => handleInputChange('stok', Number(v.replace(/[^0-9]/g, '')))} placeholderTextColor={placeholderColor} keyboardType="numeric" className="bg-white dark:bg-zinc-800 p-3 rounded-lg text-black dark:text-white" />
-            <TextInput placeholder="No. HP (Opsional)" value={formData.nohp || ''} onChangeText={v => handleInputChange('nohp', v)} placeholderTextColor={placeholderColor} keyboardType="phone-pad" className="bg-white dark:bg-zinc-800 p-3 rounded-lg text-black dark:text-white" />
+            {/* Custom Picker */}
+            <View>
+              <Text className="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-300">Kategori Usaha</Text>
+              <CustomPicker
+                  placeholder="Pilih Kategori Usaha..."
+                  items={categories.map(cat => ({
+                      label: cat.nama_kategori,
+                      value: cat.id_kategori_usaha,
+                  }))}
+                  selectedValue={formData.id_kategori_usaha}
+                  onValueChange={(value) => handleInputChange('id_kategori_usaha', value)}
+                  disabled={!categories.length}
+              />
+            </View>
 
-            {/* Ganti RNPickerSelect dengan CustomPicker */}
-            <CustomPicker
-                placeholder="Pilih Kategori Usaha..."
-                items={categories.map(cat => ({
-                    label: cat.nama_kategori,
-                    value: cat.id_kategori_usaha,
-                }))}
-                selectedValue={formData.id_kategori_usaha}
-                onValueChange={(value) => handleInputChange('id_kategori_usaha', value)}
-                disabled={!categories.length}
-            />
-
-            <TouchableOpacity onPress={handleSubmit} disabled={loading} className="bg-yellow-500 p-4 rounded-lg items-center justify-center mt-4">
+            {/* Submit Button */}
+            <TouchableOpacity onPress={handleSubmit} disabled={loading} className="bg-yellow-500 p-4 rounded-lg items-center justify-center mt-6 shadow-md shadow-yellow-400/50 active:bg-yellow-600">
                 {loading ? (
                     <ActivityIndicator color="white" />
                 ) : (
@@ -169,7 +195,6 @@ const FormProdukScreen = () => {
     </SafeAreaView>
   );
 };
-
 
 const styles = StyleSheet.create({
   scrollContent: {
