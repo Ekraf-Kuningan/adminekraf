@@ -170,6 +170,7 @@ const ManajemenProdukScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100 dark:bg-zinc-900">
+      <View className="p-4"/>
       <FlatList
         data={products}
         ListHeaderComponent={
