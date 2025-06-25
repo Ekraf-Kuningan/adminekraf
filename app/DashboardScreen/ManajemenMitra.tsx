@@ -159,13 +159,14 @@ const ManajemenMitraScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100 dark:bg-zinc-900">
+      <View className="p-4"/>
       <FlatList
         ListHeaderComponent={
           <>
             <View className="bg-yellow-400 rounded-2xl mx-4 p-4 shadow-lg">
               <Text className="text-xl font-bold text-white">Admin Panel</Text>
               <Text className="text-sm text-white mb-4">Dashboard / Daftar Mitra</Text>
-              <View className="flex-row justify-between space-x-3">
+              <View className="flex-row justify-between gap-3">
                 <StatCard count={stats.total} label="Total Mitra" /><StatCard count={stats.aktif} label="Aktif" /><StatCard count={stats.nonAktif} label="Non-aktif" />
               </View>
             </View>
@@ -173,7 +174,7 @@ const ManajemenMitraScreen = () => {
               <View className="bg-white dark:bg-zinc-800 p-2 rounded-lg border border-gray-200 dark:border-zinc-700 flex-row items-center">
                 <TextInput placeholder="Cari Mitra..." placeholderTextColor={placeholderColor} value={searchQuery} onChangeText={setSearchQuery} className="text-base flex-1 text-black dark:text-white h-10 px-2" />
               </View>
-              <View className="flex-row space-x-2 mt-4">
+              <View className="flex-row gap-2 mt-4">
                 <FilterButton label="Semua" isActive={filter === 'Semua'} onPress={() => setFilter('Semua')} isDark={isDark} /><FilterButton label="Aktif" isActive={filter === 'Aktif'} onPress={() => setFilter('Aktif')} isDark={isDark} /><FilterButton label="Non-Aktif" isActive={filter === 'NonAktif'} onPress={() => setFilter('NonAktif')} isDark={isDark} />
               </View>
               <Text className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-6 mb-2">Daftar Mitra</Text>

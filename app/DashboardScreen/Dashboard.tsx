@@ -29,33 +29,29 @@ type AdminNavProp = NavigationProp<{
 }>;
 
 /**
- * Komponen Kartu Statistik yang Diperbarui
+ * Komponen Kartu Statistik yang Didesain Ulang untuk Tampilan Berjajar
  */
 const StatCard = ({ icon, label, value, color, loading }: { icon: string; label: string; value: string; color: string; loading: boolean; }) => (
-  <View className={`p-4 rounded-2xl flex-1 ${color} shadow-lg`} style={{ shadowColor: color }}>
-    <View className="flex-row justify-between items-start">
-      <View className="bg-white/30 p-2 rounded-lg">
-        <Icon name={icon} size={24} color="white" />
-      </View>
-      {loading ? (
-        <ActivityIndicator color="white" />
-      ) : (
-        <Text className="text-4xl font-extrabold text-white">{value}</Text>
-      )}
+    <View className={`p-4 rounded-2xl flex-1 ${color} shadow-lg items-center justify-center`} style={{ shadowColor: color }}>
+        <Icon name={icon} size={28} color="white" className="mb-2" />
+        {loading ? (
+            <ActivityIndicator color="white" />
+        ) : (
+            <Text className="text-3xl font-extrabold text-white">{value}</Text>
+        )}
+        <Text className="text-white/90 text-sm font-medium text-center mt-1">{label}</Text>
     </View>
-    <Text className="text-white font-semibold mt-4 text-base">{label}</Text>
-  </View>
 );
 
 /**
  * Komponen Kartu untuk Produk Terbaru
  */
 const RecentProductCard = ({ product, onPress }: { product: Product, onPress: () => void }) => (
-    <TouchableOpacity onPress={onPress} className="w-40 mr-4 bg-white dark:bg-zinc-800 rounded-lg shadow-sm overflow-hidden">
+    <TouchableOpacity onPress={onPress} className="w-44 mr-4 bg-white dark:bg-zinc-800 rounded-xl shadow-md shadow-gray-200/50 dark:shadow-none overflow-hidden border border-gray-100 dark:border-zinc-700">
         <Image source={{ uri: product.gambar || 'https://placehold.co/200x200/e2e8f0/e2e8f0' }} className="w-full h-24" />
-        <View className="p-2">
+        <View className="p-3">
             <Text className="text-sm font-semibold text-gray-800 dark:text-gray-100" numberOfLines={1}>{product.nama_produk}</Text>
-            <Text className="text-xs text-gray-500 dark:text-gray-400">Rp {product.harga.toLocaleString('id-ID')}</Text>
+            <Text className="text-xs text-yellow-600 dark:text-yellow-500 font-bold mt-1">Rp {product.harga.toLocaleString('id-ID')}</Text>
         </View>
     </TouchableOpacity>
 );
@@ -66,13 +62,13 @@ const RecentProductCard = ({ product, onPress }: { product: Product, onPress: ()
 const ActivityItem = ({ icon, text, time, iconColor }: { icon: string; text: React.ReactNode; time: string; iconColor: string; }) => {
     useTheme();
     return (
-        <View className="flex-row items-center space-x-4">
+        <View className="flex-row items-center gap-4">
             <View className={'w-12 h-12 rounded-full items-center justify-center'} style={{backgroundColor: iconColor + '1A'}}>
                 <Icon name={icon} size={24} color={iconColor} />
             </View>
             <View className="flex-1">
-                <Text className="text-base text-gray-800 dark:text-gray-200">{text}</Text>
-                <Text className="text-sm text-gray-500 dark:text-gray-400">{time}</Text>
+                <Text className="text-base text-gray-700 dark:text-gray-200 leading-snug">{text}</Text>
+                <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">{time}</Text>
             </View>
         </View>
     );
@@ -89,6 +85,7 @@ const DashboardAdminScreen = () => {
   const [recentUsers, setRecentUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isDark } = useTheme(); // Panggil useTheme di sini
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -99,7 +96,7 @@ const DashboardAdminScreen = () => {
 
       const [userResponse, productResponse, categoryResponse] = await Promise.all([
         usersApi.getAll(),
-        productsApi.getAll({ limit: 5 }), // Ambil 5 produk terbaru
+        productsApi.getAll({ limit: 10 }), // Ambil 10 produk
         masterDataApi.getBusinessCategories(),
       ]);
 
@@ -107,13 +104,12 @@ const DashboardAdminScreen = () => {
 
       setStats({
         users: String(umkmUsers.length),
-        products: String(productResponse.data.length), // Ini akan menjadi total dari halaman pertama
+        products: String(productResponse.data.length),
         categories: String(categoryResponse.length),
       });
 
-      // Ambil 5 produk dan user terbaru untuk ditampilkan
       setRecentProducts(productResponse.data.slice(0, 5));
-      setRecentUsers(umkmUsers.slice(0, 3)); // Ambil 3 user terbaru
+      setRecentUsers(umkmUsers.slice(0, 3));
 
     } catch (e: any) {
       setError(e.message || 'Terjadi kesalahan saat memuat data');
@@ -135,32 +131,40 @@ const DashboardAdminScreen = () => {
         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} tintColor="#F59E0B" />}
       >
         {/* Header */}
-        <View className="p-5">
-          <Text className="text-sm text-gray-500 dark:text-gray-400">Dashboard</Text>
-          <Text className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">
-            Selamat Datang, {user?.nama_user || 'Admin'}!
-          </Text>
+        <View className="flex-row justify-between items-center p-5">
+            <View>
+                <Text className="text-3xl font-extrabold text-slate-800 dark:text-slate-100">
+                    Dashboard
+                </Text>
+                <Text className="text-md text-gray-500 dark:text-gray-400">
+                    Selamat Datang, {user?.nama_user || 'Admin'}!
+                </Text>
+            </View>
+            <TouchableOpacity className="bg-white dark:bg-zinc-800 p-3 rounded-full border border-gray-200 dark:border-zinc-700">
+                <Icon name="bell" size={20} color={isDark ? 'white' : 'black'}/>
+            </TouchableOpacity>
         </View>
 
         {/* Kartu Statistik */}
-        <View className="px-5 space-y-3">
-            <StatCard icon="users" label="Total Mitra UMKM" value={stats.users} color="bg-blue-500" loading={loading} />
-            <View className="flex-row space-x-3">
-                <StatCard icon="package" label="Produk Baru" value={stats.products} color="bg-green-500" loading={loading} />
-                <StatCard icon="grid" label="Total Kategori" value={stats.categories} color="bg-purple-500" loading={loading} />
+        <View className="px-5 py-2">
+            {/* Ganti gap-3 dengan gap-3 untuk memberikan jarak */}
+            <View className="flex-row gap-3">
+                <StatCard icon="users" label="Mitra UMKM" value={stats.users} color="bg-blue-500" loading={loading} />
+                <StatCard icon="package" label="Total Produk" value={stats.products} color="bg-green-500" loading={loading} />
+                <StatCard icon="grid" label="Kategori" value={stats.categories} color="bg-purple-500" loading={loading} />
             </View>
         </View>
 
         {error && <Text className="text-red-500 text-center p-4">{error}</Text>}
 
         {/* Produk Terbaru */}
-        <View className="mt-6">
-          <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 mx-5 mb-3">
+        <View className="mt-8">
+          <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 mx-5 mb-4">
             Produk Terbaru
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScrollContent}>
             {loading ? (
-                <ActivityIndicator size="small" color="#F59E0B" />
+                <View className="w-full flex-row justify-center"><ActivityIndicator size="small" color="#F59E0B" /></View>
             ) : (
                 recentProducts.map(product => (
                     <RecentProductCard key={product.id_produk} product={product} onPress={() => navigation.navigate('FormProdukScreen', { product })} />
@@ -171,7 +175,7 @@ const DashboardAdminScreen = () => {
 
         {/* Aktivitas Terkini */}
         <View className="p-5 mt-4">
-          <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+          <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-5">
             Aktivitas Terkini
           </Text>
           <View className="space-y-6">
@@ -188,7 +192,6 @@ const DashboardAdminScreen = () => {
                     />
                 ))
             )}
-            {/* Contoh aktivitas statis */}
             <ActivityItem
                 icon="settings"
                 text={<Text>Sistem telah diperbarui.</Text>}
@@ -207,7 +210,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   horizontalScrollContent: {
-    paddingHorizontal: 20,
+    paddingLeft: 20,
+    paddingRight: 5,
   },
 });
 

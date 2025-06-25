@@ -58,7 +58,7 @@ const HeaderStats = ({ products }: { products: Product[] }) => {
 
     return (
         <View className="px-4 pb-4 space-y-2">
-            <View className="flex-row space-x-2">
+            <View className="flex-row gap-2">
                 <StatPill count={stats.active} label="Disetujui" color="bg-green-500" />
                 <StatPill count={stats.pending} label="Pending" color="bg-yellow-500" />
                 <StatPill count={stats.inactive} label="Lainnya" color="bg-gray-500" />
@@ -175,7 +175,7 @@ const ManajemenProdukScreen = () => {
         ListHeaderComponent={
             <>
                 <HeaderStats products={products} />
-                <View className="flex-row p-4 pt-0 items-center space-x-2">
+                <View className="flex-row p-4 pt-0 items-center gap-2">
                     <View className="flex-1 bg-white dark:bg-zinc-800 rounded-lg border border-gray-300 dark:border-zinc-700 flex-row items-center">
                         <Icon name="search" size={20} color={placeholderColor} className="ml-3" />
                         <TextInput placeholder="Cari produk..." onSubmitEditing={() => {setPage(1); fetchProducts(1, true);}} placeholderTextColor={placeholderColor} value={searchQuery} onChangeText={setSearchQuery} className="text-base flex-1 text-black dark:text-white h-12 px-2" />
