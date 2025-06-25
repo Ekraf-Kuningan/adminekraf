@@ -12,6 +12,7 @@ jobs:
     permissions:
       contents: write
     env:
+      # Variabel lingkungan global untuk seluruh job
       LIGHTNINGCSS_PLATFORM: wasm32
 
     steps:
@@ -51,6 +52,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
+        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 tersedia saat instalasi
+        env:
+          LIGHTNINGCSS_PLATFORM: wasm32
         run: npm install
 
       - name: Setup Java
@@ -92,10 +96,16 @@ jobs:
           echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Build Android App Bundle (AAB)
+        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 tersedia saat build AAB
+        env:
+          LIGHTNINGCSS_PLATFORM: wasm32
         run: ./gradlew bundleRelease --no-daemon
         working-directory: ./android
 
       - name: Build Android APK
+        # Pastikan LIGHTNINGCSS_PLATFORM: wasm32 tersedia saat build APK
+        env:
+          LIGHTNINGCSS_PLATFORM: wasm32
         run: ./gradlew assembleRelease --no-daemon
         working-directory: ./android
 
