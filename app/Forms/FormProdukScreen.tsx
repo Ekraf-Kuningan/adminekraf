@@ -163,7 +163,7 @@ const FormProdukScreen = () => {
           {/* Section: Harga dan Stok */}
           <View className="space-y-4">
             <Text className="text-lg font-bold text-gray-800 dark:text-gray-200">Harga & Stok</Text>
-            <View className="flex-row space-x-4">
+            <View className="flex-row gap-4">
               <View className="flex-1">
                 <FormInput
                   label="Harga"
