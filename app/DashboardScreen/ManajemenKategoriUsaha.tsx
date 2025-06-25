@@ -96,20 +96,20 @@ const ManajemenKategoriScreen = () => {
 
   const handleDelete = (category: KategoriUsaha) => {
     Alert.alert(
-      "Hapus Kategori",
+      'Hapus Kategori',
       `Apakah Anda yakin ingin menghapus "${category.nama_kategori}"?`,
       [
-        { text: "Batal", style: "cancel" },
+        { text: 'Batal', style: 'cancel' },
         {
-          text: "Hapus",
-          style: "destructive",
+          text: 'Hapus',
+          style: 'destructive',
           onPress: async () => {
             try {
               await kategoriUsahaApi.delete(category.id_kategori_usaha);
-              Alert.alert("Sukses", "Kategori berhasil dihapus.");
+              Alert.alert('Sukses', 'Kategori berhasil dihapus.');
               fetchCategories(); // Muat ulang daftar kategori
             } catch (e: any) {
-              Alert.alert("Error", e.message);
+              Alert.alert('Error', e.message);
             }
           },
         },
@@ -119,7 +119,7 @@ const ManajemenKategoriScreen = () => {
 
   const handleImagePick = async () => {
     const result = await launchImageLibrary({ mediaType: 'photo', quality: 0.5 });
-    if (result.didCancel || result.errorCode) return;
+    if (result.didCancel || result.errorCode) {return;}
     const asset = result.assets?.[0];
     if (asset) {
       setImageAsset(asset);
@@ -129,7 +129,7 @@ const ManajemenKategoriScreen = () => {
 
   const handleSubmit = async () => {
     if (!formData.nama_kategori) {
-      Alert.alert("Input Tidak Lengkap", "Nama kategori wajib diisi.");
+      Alert.alert('Input Tidak Lengkap', 'Nama kategori wajib diisi.');
       return;
     }
     setFormLoading(true);
@@ -143,16 +143,16 @@ const ManajemenKategoriScreen = () => {
       } else {
         await kategoriUsahaApi.create(payload);
       }
-      Alert.alert("Sukses", `Kategori berhasil ${isEditMode ? 'diperbarui' : 'dibuat'}.`);
+      Alert.alert('Sukses', `Kategori berhasil ${isEditMode ? 'diperbarui' : 'dibuat'}.`);
       setModalVisible(false);
       fetchCategories();
     } catch (e: any) {
-      Alert.alert("Error", e.message);
+      Alert.alert('Error', e.message);
     } finally {
       setFormLoading(false);
     }
   };
-  
+
   const placeholderColor = isDark ? '#A1A1AA' : '#6B7281';
 
   return (
@@ -187,7 +187,7 @@ const ManajemenKategoriScreen = () => {
             <Text className="text-xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">
               {isEditMode ? 'Edit Kategori' : 'Tambah Kategori Baru'}
             </Text>
-            
+
             <TouchableOpacity onPress={handleImagePick} className="items-center justify-center h-28 w-28 self-center bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden border-2 border-dashed border-gray-300 dark:border-zinc-600 mb-6">
               {formData.image ? (
                 <Image source={{ uri: formData.image }} className="w-full h-full" resizeMode="cover" />
@@ -203,7 +203,7 @@ const ManajemenKategoriScreen = () => {
               placeholderTextColor={placeholderColor}
               className="bg-gray-100 dark:bg-zinc-700 p-4 rounded-lg text-black dark:text-white text-base mb-6"
             />
-            
+
             <TouchableOpacity onPress={handleSubmit} disabled={formLoading} className="bg-yellow-500 p-4 rounded-lg items-center justify-center shadow-md">
               {formLoading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">{isEditMode ? 'Simpan Perubahan' : 'Tambah'}</Text>}
             </TouchableOpacity>
