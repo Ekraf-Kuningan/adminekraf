@@ -67,7 +67,7 @@ function FadeScreen({ children }: FadeScreenProps) {
     };
   });
 
-  // Selalu render Animated.View, logikanya ada di dalam useEffect.
+  // Selalu render Animated.View, logikanya ada di dalam useEffect.a
   return (
     <Animated.View style={[styles.animatedContainer, animatedStyle]}>
       {children}
