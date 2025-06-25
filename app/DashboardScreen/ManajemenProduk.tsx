@@ -32,7 +32,7 @@ const statusOptions: { label: string; value: ProductStatus; icon: string; color:
     { label: 'Disetujui', value: 'disetujui', icon: 'check-circle', color: '#10B981' },
     { label: 'Pending', value: 'pending', icon: 'clock', color: '#F59E0B' },
     { label: 'Ditolak', value: 'ditolak', icon: 'x-circle', color: '#EF4444' },
-    { label: 'Tidak Aktif', value: 'tidak aktif', icon: 'pause-circle', color: '#6B7280' },
+    { label: 'Tidak aktif', value: 'tidak_aktif', icon: 'pause-circle', color: '#6B7280' },
 ];
 
 /**

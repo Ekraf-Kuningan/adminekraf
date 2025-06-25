@@ -120,7 +120,7 @@ export interface Product {
   gambar: string;
   id_user: number;
   // TAMBAHKAN BARIS DI BAWAH INI
-  status_produk: 'disetujui' | 'pending' | 'ditolak' | 'tidak aktif';
+  status_produk: 'disetujui' | 'pending' | 'ditolak' | 'tidak_aktif';
   tbl_kategori_usaha?: KategoriUsaha;
   tbl_user?: { nama_user: string; };
   tbl_olshop_link?: OlshopLink[];
@@ -134,7 +134,7 @@ export interface ProductPayload {
   nohp?: string;
   id_kategori_usaha: number;
   gambar: string; // Tipe data string untuk URL gambar
-  status_produk?: 'disetujui' | 'pending' | 'ditolak' | 'tidak aktif';
+  status_produk?: 'disetujui' | 'pending' | 'ditolak' | 'tidak_aktif';
 }
 export interface OlshopLink {
     id_link: number;
