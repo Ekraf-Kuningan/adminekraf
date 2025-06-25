@@ -29,6 +29,7 @@ import AddProdukScreen from './app/DashboardScreen/AddProduk';
 import EditMitraScreen from './app/Forms/EditMitraScreen';
 
 import './global.css';
+import { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,19 +45,30 @@ interface TabBarIconProps {
 }
 
 function FadeScreen({ children }: FadeScreenProps) {
+  const { isDark } = useTheme();
   const isFocused = useIsFocused();
-  const opacity = React.useRef(new Animated.Value(0)).current;
+  const opacity = useSharedValue(0);
 
   React.useEffect(() => {
-    Animated.timing(opacity, {
-      toValue: isFocused ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [isFocused, opacity]);
+    const targetOpacity = isFocused ? 1 : 0;
+    // Hanya jalankan animasi (withTiming) di mode terang.
+    // Di mode gelap, langsung ubah opacity tanpa animasi.
+    if (isDark) {
+      opacity.value = targetOpacity;
+    } else {
+      opacity.value = withTiming(targetOpacity, { duration: 300 });
+    }
+  }, [isFocused, isDark, opacity]); // isDark ditambahkan sebagai dependency
 
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
+
+  // Selalu render Animated.View, logikanya ada di dalam useEffect.
   return (
-    <Animated.View style={[styles.animatedContainer, { opacity }]}>
+    <Animated.View style={[styles.animatedContainer, animatedStyle]}>
       {children}
     </Animated.View>
   );
@@ -170,7 +182,7 @@ function AppContent() {
           })}
         />
         <Stack.Screen
-            name="EditMitra"
+            name="EditMitraScreen"
             component={EditMitraScreen}
             options={{
                 headerShown: true,

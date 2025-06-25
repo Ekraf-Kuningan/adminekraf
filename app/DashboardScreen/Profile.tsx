@@ -3,26 +3,17 @@ import { View, Text, TouchableOpacity, StatusBar, ActivityIndicator, Alert } fro
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
+import { useTheme } from '../Context/ThemeContext';
+import { User } from '../../lib/types';
 
-type UserData = {
-  username?: string;
-  level?: string;
-  nama_user?: string;
-  email?: string;
-  // add other fields if needed
-};
 
-const ProfileScreen = ({ isDark }: { isDark: boolean }) => {
-  const [userData, setUserData] = useState<UserData | null>(null);
+const ProfileScreen = () => {
+  const { isDark } = useTheme();
+  const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // Define your navigation param list type
-  type RootStackParamList = {
-    Login: undefined;
-    // ...add other routes if needed
-  };
-
-  const navigation = useNavigation<import('@react-navigation/native').NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<any>>();
 
   useFocusEffect(
     useCallback(() => {
@@ -60,8 +51,8 @@ const ProfileScreen = ({ isDark }: { isDark: boolean }) => {
           text: 'Logout',
           onPress: async () => {
             try {
-              await AsyncStorage.removeItem('userToken');
               await AsyncStorage.removeItem('userData');
+              await AsyncStorage.removeItem('userToken'); // Hapus token jika ada
               navigation.navigate('Login');
             } catch (e) {
               console.error('Failed to clear user data', e);
@@ -135,5 +126,5 @@ const ProfileScreen = ({ isDark }: { isDark: boolean }) => {
     </View>
   );
 };
-
 export default ProfileScreen;
+

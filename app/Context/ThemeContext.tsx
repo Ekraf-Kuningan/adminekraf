@@ -1,28 +1,52 @@
-import React, { createContext, useState, useContext, useMemo } from 'react';
-import { useColorScheme } from 'react-native';
+// app/Context/ThemeContext.js
 
-const ThemeContext = createContext({
-  isDark: false,
-  toggleTheme: () => {},
-});
+import React, { createContext, useContext } from 'react';
+// Impor useColorScheme dari React Native untuk fallback awal
+import { useColorScheme as useDeviceColorScheme } from 'react-native';
+// Impor useColorScheme dari NativeWind sebagai controller utama
+import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
 
-export const ThemeProvider = ({ children }) => {
-  const systemColorScheme = useColorScheme();
-  const [theme, setTheme] = useState(systemColorScheme || 'light');
-
-  const isDark = theme === 'dark';
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
-
-  const value = useMemo(() => ({ isDark, toggleTheme }), [isDark]);
-
-  return (
-    <ThemeContext.Provider value={value}>
-        {children}
-    </ThemeContext.Provider>
-  );
+type ThemeContextType = {
+    isDark: boolean;
+    toggleTheme: () => void;
 };
 
-export const useTheme = () => useContext(ThemeContext);
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+    // 1. Dapatkan controller tema dari NativeWind
+    const { colorScheme, setColorScheme } = useNativeWindColorScheme();
+
+    // 2. Dapatkan tema sistem sebagai fallback saat aplikasi pertama kali dimuat
+    const deviceColorScheme = useDeviceColorScheme();
+
+    // 3. Tentukan apakah mode gelap aktif
+    //    - Jika ada pilihan manual (colorScheme bukan 'system'), gunakan itu.
+    //    - Jika tidak, gunakan tema dari device.
+    const isDark =
+        colorScheme === 'dark' ||
+        (colorScheme === undefined && deviceColorScheme === 'dark');
+
+    // 4. Buat fungsi toggle yang akan mengontrol NativeWind
+    const toggleTheme = () => {
+        // setColorScheme akan secara otomatis menyimpan pilihan pengguna
+        const newScheme = isDark ? 'light' : 'dark';
+        setColorScheme(newScheme);
+    };
+
+    // 5. Sediakan `isDark` dan `toggleTheme` ke seluruh aplikasi
+    return (
+        <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+            {children}
+        </ThemeContext.Provider>
+    );
+};
+
+// Hook useTheme tetap sama
+export const useTheme = () => {
+    const context = useContext(ThemeContext);
+    if (context === undefined) {
+        throw new Error('useTheme harus digunakan di dalam ThemeProvider');
+    }
+    return context;
+};

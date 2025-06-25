@@ -10,8 +10,16 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-const FormInput = ({ label, value, onChangeText, ...props }) => (
+type FormInputProps = {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  [key: string]: any;
+};
+
+const FormInput: React.FC<FormInputProps> = ({ label, value, onChangeText, ...props }) => (
   <View className="mb-4">
     <Text className="text-base text-gray-600 mb-2">{label}</Text>
     <TextInput
@@ -23,7 +31,23 @@ const FormInput = ({ label, value, onChangeText, ...props }) => (
   </View>
 );
 
-const EditMitraScreen = ({ route, navigation }) => {
+
+
+type Mitra = {
+  id_user: string;
+  nama_user: string;
+  email: string;
+  nohp: string;
+  // tambahkan properti lain jika ada
+};
+
+type EditMitraScreenRouteParams = {
+  mitra: Mitra;
+};
+
+type EditMitraScreenProps = NativeStackScreenProps<{ EditMitraScreen: EditMitraScreenRouteParams }, 'EditMitraScreen'>;
+
+const EditMitraScreen: React.FC<EditMitraScreenProps> = ({ route, navigation }) => {
   const { mitra } = route.params;
 
   const [namaUser, setNamaUser] = useState(mitra.nama_user);
@@ -58,7 +82,7 @@ const EditMitraScreen = ({ route, navigation }) => {
       Alert.alert('Sukses', 'Data mitra berhasil diperbarui.');
       navigation.goBack();
     } catch (e) {
-      Alert.alert('Error', e.message);
+      Alert.alert('Error', e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
       setLoading(false);
     }
@@ -83,7 +107,7 @@ const EditMitraScreen = ({ route, navigation }) => {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Gagal menghapus data');
@@ -92,17 +116,24 @@ const EditMitraScreen = ({ route, navigation }) => {
       Alert.alert('Sukses', 'Data mitra berhasil dihapus.');
       navigation.goBack();
     } catch (e) {
-      Alert.alert('Error', e.message);
+      Alert.alert('Error', e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
       setLoading(false);
     }
   };
 
+  const styles = {
+    container: {
+      padding: 20,
+      flexGrow: 1,
+    },
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={styles.container}>
         <Text className="text-3xl font-bold text-slate-800 mb-6">Edit Mitra</Text>
-        
+
         <FormInput
           label="Nama Lengkap"
           value={namaUser}
@@ -143,7 +174,7 @@ const EditMitraScreen = ({ route, navigation }) => {
         >
           <Text className="text-white text-lg font-bold">Hapus Mitra</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           className="bg-gray-200 p-4 rounded-lg items-center justify-center mt-3"

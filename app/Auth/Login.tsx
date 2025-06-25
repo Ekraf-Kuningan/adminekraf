@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, StatusBar, useColorScheme, Platform, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, StatusBar, useColorScheme, Platform, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import axios from 'axios'; // Import axios
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { authApi } from '../../lib/api'; // Pastikan path ini sesuai dengan struktur proyek Anda
+import PopupTemplate from '../../components/PopUpTemplate'; // Pastikan path ini sesuai dengan
 
 const primaryColor = '#FFAA01';
 const lightTextColor = '#000000';
@@ -32,38 +32,56 @@ export default function Login({ navigation }: { navigation: any }) {
   const currentInputBackgroundColor = isDarkMode ? '#1E1E1E' : '#FFFFFF';
   const currentBackgroundColor = isDarkMode ? '#121212' : '#FFFFFF';
   // const linkTextColor = isDarkMode ? 'text-[#FFAA01]' : 'text-[#FFAA01]';
-
+  const [popup, setPopup] = useState({
+    visible: false,
+    theme: 'info' as 'success' | 'error' | 'warning' | 'info',
+    title: '',
+    message: '',
+    onClose: () => { },
+    buttonText: 'OK',
+  });
+  const showPopup = (
+    theme: 'success' | 'error' | 'warning' | 'info',
+    title: string,
+    message: string,
+    buttonText: string = 'Mengerti',
+    onCloseAction = () => { }
+  ) => {
+    setPopup({
+      visible: true,
+      theme,
+      title,
+      message,
+      buttonText,
+      onClose: () => {
+        setPopup(prev => ({ ...prev, visible: false }));
+        onCloseAction();
+      },
+    });
+  };
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Email dan Kata Sandi harus diisi.');
+    if (!email.trim() || !password) {
+      showPopup('warning', 'Perhatian', 'Email dan Kata Sandi harus diisi.');
       return;
     }
 
-    setLoading(true); // Aktifkan loading
+    setLoading(true);
     try {
-      // Sesuaikan URL dengan endpoint login UMKM Anda
-      const response = await axios.post('https://ekraf.asepharyana.tech/api/auth/login/admin', {
-        usernameOrEmail: email, // API Anda menerima usernameOrEmail
-        password: password,
-      });
+      // Panggil fungsi login dari objek authApi
+      // Level 'umkm' sudah menjadi default di fungsi API, jadi tidak perlu disertakan
+      const { message } = await authApi.login({ u: email, p: password }, 'admin');
 
-      if (response.status === 200) {
-        const { message, token, user } = response.data;
-        await AsyncStorage.setItem('userToken', token); // Simpan token
-        await AsyncStorage.setItem('userData', JSON.stringify(user)); // Simpan data user jika diperlukan
-        Alert.alert('Sukses', message);
-
-        navigation.replace('MainApp'); // Ganti layar ke halaman utama setelah login
-      } else {
-        // Ini mungkin tidak akan terpanggil karena axios akan throw error untuk status non-2xx
-        Alert.alert('Login Gagal', response.data.message || 'Terjadi kesalahan saat login.');
-      }
-    } catch (error: any) {
-      console.error('Login error:', error.response?.data || error.message);
-      Alert.alert(
-        'Login Gagal',
-        error.response?.data?.message || 'Tidak dapat terhubung ke server. Mohon coba lagi.'
+      showPopup(
+        'success',
+        'Login Berhasil',
+        message || 'Anda akan diarahkan ke halaman utama.',
+        'Lanjutkan',
+        () => navigation.replace('MainApp') // Pastikan nama navigator sudah benar
       );
+    } catch (error: any) {
+      // Tangkap error yang dilemparkan dari fungsi API
+      console.error('Login error:', error.message);
+      showPopup('error', 'Login Gagal', error.message);
     } finally {
       setLoading(false);
     }
@@ -78,11 +96,11 @@ export default function Login({ navigation }: { navigation: any }) {
       />
 
       <View style={styles.headerContainer}>
-           <Image
-                    source={require('../../assets/images/LogoText.png')}
-                    className="w-72 h-249 mb-3"
-                    resizeMode="contain"
-                  />
+        <Image
+          source={require('../../assets/images/LogoText.png')}
+          className="w-72 h-249 mb-3"
+          resizeMode="contain"
+        />
       </View>
 
       <View style={styles.welcomeContainer}>
@@ -144,6 +162,14 @@ export default function Login({ navigation }: { navigation: any }) {
           <Text style={styles.loginButtonText}>Masuk</Text>
         )}
       </TouchableOpacity>
+      <PopupTemplate
+        visible={popup.visible}
+        onClose={popup.onClose}
+        theme={popup.theme}
+        title={popup.title}
+        message={popup.message}
+        buttonText={popup.buttonText}
+      />
     </View>
   );
 }
@@ -258,3 +284,5 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
 });
+
+

@@ -1,3 +1,5 @@
+// src/screens/Auth/ResetPasswordScreen.tsx
+
 import React, { useState } from 'react';
 import {
   View,
@@ -6,85 +8,108 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  useColorScheme,
-  Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-// Pastikan file ini berada di dalam path yang terdaftar di tailwind.config.js
-// Contoh: ./app/Auth/ResetPasswordScreen.tsx
+// Impor yang sudah disesuaikan
+import { authApi } from '../../lib/api';
+import PopupTemplate from '../../components/PopUpTemplate';
+import { useTheme } from '../Context/ThemeContext';
 
-const ResetPasswordScreen = ({ navigation }: { navigation: any }) => {
+const ForgotPasswordScreen = ({ navigation }: { navigation: any }) => { // Nama komponen diubah agar lebih jelas
+  const { isDark } = useTheme(); // Menggunakan hook tema kustom
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
 
-  const handleResetPassword = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Email tidak boleh kosong.');
+  // --- STATE & HELPER UNTUK POPUP ---
+  const [popup, setPopup] = useState({
+    visible: false,
+    theme: 'info' as 'success' | 'error' | 'warning' | 'info',
+    title: '',
+    message: '',
+    onClose: () => { },
+    buttonText: 'OK',
+  });
+
+  const showPopup = (
+    theme: 'success' | 'error' | 'warning' | 'info',
+    title: string,
+    message: string,
+    buttonText: string = 'Mengerti',
+    onCloseAction = () => { }
+  ) => {
+    setPopup({
+      visible: true,
+      theme,
+      title,
+      message,
+      buttonText,
+      onClose: () => {
+        setPopup(prev => ({ ...prev, visible: false }));
+        onCloseAction();
+      },
+    });
+  };
+
+  // Handler yang disesuaikan
+  const handleRequestReset = async () => {
+    if (!email.trim()) {
+      showPopup('warning', 'Email Diperlukan', 'Mohon masukkan alamat email Anda.');
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch('https://ekraf.asepharyana.tech/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json',
-        },
-        body: JSON.stringify({ email: email }),
-      });
+      // Panggil fungsi dari objek authApi
+      const response = await authApi.forgotPassword(email);
 
-      const data = await response.json();
+      // Gunakan PopupTemplate untuk pesan sukses
+      showPopup(
+        'success',
+        'Permintaan Terkirim,silakan periksa email Anda dan reset kata sandi Anda.',
+        response.message,
+        'Buka Gmail',
+        () => {
+            Linking.openURL('https://gmail.app.goo.gl');
+            navigation.navigate('Login');
+        } // Aksi navigasi setelah popup ditutup
+      );
 
-      if (response.ok && data.success) {
-        Alert.alert('Sukses', data.message, [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
-      } else {
-        Alert.alert('Error', data.message || 'Terjadi kesalahan. Silakan coba lagi.');
-      }
-    } catch (error) {
+    } catch (error: any) {
+      // Gunakan PopupTemplate untuk pesan error
       console.error(error);
-      Alert.alert('Error', 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+      showPopup('error', 'Gagal', error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const containerBg = isDark ? 'bg-black' : 'bg-white';
-  const textColor = isDark ? 'text-gray-100' : 'text-gray-800';
-  const subTextColor = isDark ? 'text-gray-400' : 'text-gray-500';
-  const inputBg = isDark ? 'bg-gray-900' : 'bg-white';
-  const inputBorder = isDark ? 'border-gray-700' : 'border-gray-300';
-  const placeholderColor = isDark ? '#6B7280' : '#9CA3AF';
-  const iconColor = isDark ? '#F3F4F6' : '#374151';
-  const buttonBg = isDark ? 'bg-yellow-600' : 'bg-yellow-500';
-
+  // --- JSX (Tampilan Visual) ---
   return (
-    <SafeAreaView className={`flex-1 pt-2 ${containerBg}`}>
+    <SafeAreaView className={`flex-1 pt-2 ${isDark ? 'bg-zinc-900' : 'bg-gray-50'}`}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View className="p-6">
         <TouchableOpacity onPress={() => navigation.goBack()} className="mb-8 self-start">
-          <Icon name="arrow-back-outline" size={28} color={iconColor} />
+          <Icon name="arrow-back-outline" size={28} color={isDark ? '#F3F4F6' : '#374151'} />
         </TouchableOpacity>
 
-        <Text className={`text-3xl font-bold mb-2 text-center ${textColor}`}>
-          Reset Password
+        <Text className={`text-3xl font-bold mb-2 text-center ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
+          Lupa Kata Sandi
         </Text>
-        <Text className={`text-sm mb-10 text-center ${subTextColor}`}>
-          Password baru akan dikirimkan melalui email yang telah didaftarkan
+        <Text className={`text-base mb-10 text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          Masukkan email Anda untuk menerima instruksi reset kata sandi.
         </Text>
 
-        <Text className={`text-sm mb-1 ml-1 ${textColor}`}>Email</Text>
+        <Text className={`text-sm font-medium mb-2 ml-1 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+          Alamat Email
+        </Text>
         <TextInput
-          className={`border rounded-lg p-4 mb-8 text-base ${inputBorder} ${inputBg} ${textColor}`}
+          className={`border rounded-lg p-4 mb-8 text-base ${isDark ? 'border-gray-700 bg-gray-800 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
           placeholder="Masukkan email disini"
-          placeholderTextColor={placeholderColor}
+          placeholderTextColor={isDark ? '#6B7280' : '#9CA3AF'}
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
@@ -92,18 +117,31 @@ const ResetPasswordScreen = ({ navigation }: { navigation: any }) => {
         />
 
         <TouchableOpacity
-          className={`rounded-lg py-4 flex-row justify-center items-center ${buttonBg}`}
-          onPress={handleResetPassword}
-          disabled={loading}>
+          className={'rounded-lg py-4 flex-row justify-center items-center bg-[#FFAA01] active:opacity-80'}
+          onPress={handleRequestReset}
+          disabled={loading}
+        >
           {loading ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text className="text-white text-center font-semibold text-base">Kirim</Text>
+            <Text className="text-white text-center font-semibold text-base">
+              Kirim Instruksi
+            </Text>
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Komponen Pop Up yang akan ditampilkan di atas segalanya */}
+      <PopupTemplate
+        visible={popup.visible}
+        onClose={popup.onClose}
+        theme={popup.theme}
+        title={popup.title}
+        message={popup.message}
+        buttonText={popup.buttonText}
+      />
     </SafeAreaView>
   );
 };
 
-export default ResetPasswordScreen;
+export default ForgotPasswordScreen;

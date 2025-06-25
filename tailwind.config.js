@@ -10,7 +10,7 @@ module.exports = {
     // Atau jika ada folder lain, misal "./src/**/*.{js,jsx,ts,tsx}"
   ],
   presets: [require("nativewind/preset")],
-  // darkMode: 'class', // Aktifkan dark mode dengan class
+  darkMode: 'class', // Aktifkan dark mode dengan class
   theme: {
     extend: {
     
