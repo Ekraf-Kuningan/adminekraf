@@ -44,6 +44,7 @@ export interface User {
   tbl_level?: { id_level?: number; level: string; };
   tbl_kategori_usaha?: KategoriUsaha | null;
   level?: string;
+  productCount?: number;
 }
 
 export interface LoginResponse {

@@ -7,18 +7,20 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation, NavigationProp } from '@react-navigation/native';
-import { useTheme } from '../Context/ThemeContext'; // Impor useTheme
+import { useTheme } from '../Context/ThemeContext';
+import { User } from '../../lib/types';
+import { usersApi } from '../../lib/api';
 
-// --- Komponen dipindahkan ke luar untuk stabilitas ---
-
-// Tipe untuk props komponen
+// --- Tipe Props ---
 interface StatCardProps { count: number; label: string; }
 interface FilterButtonProps { label: string; isActive: boolean; onPress: () => void; isDark: boolean; }
-interface MitraCardProps { mitra: any; onPress: () => void; isDark: boolean; }
+interface MitraCardProps { mitra: User; onPress: () => void; isDark: boolean; }
+type MitraNavProp = NavigationProp<{ EditMitraScreen: { mitra: User }; }>;
 
+// --- Komponen Pembantu ---
 const StatCard = ({ count, label }: StatCardProps) => (
   <View className="flex-1 items-center p-3 rounded-xl shadow-md bg-yellow-500">
     <Text className="text-2xl font-bold text-white">{count}</Text>
@@ -29,18 +31,9 @@ const StatCard = ({ count, label }: StatCardProps) => (
 const FilterButton = ({ label, isActive, onPress, isDark }: FilterButtonProps) => (
   <TouchableOpacity
     onPress={onPress}
-    className={`px-5 py-2 rounded-full border 
-      ${isActive
-        ? 'bg-yellow-500 border-yellow-500'
-        : `border-gray-300 dark:border-zinc-600 ${isDark ? 'bg-zinc-700' : 'bg-white'}`}`
-      }
+    className={`px-5 py-2 rounded-full border ${isActive ? 'bg-yellow-500 border-yellow-500' : `border-gray-300 dark:border-zinc-600 ${isDark ? 'bg-zinc-700' : 'bg-white'}`}`}
   >
-    <Text className={`font-semibold 
-      ${isActive
-        ? 'text-white'
-        : `${isDark ? 'text-gray-200' : 'text-gray-600'}`}`
-      }
-    >
+    <Text className={`font-semibold ${isActive ? 'text-white' : `${isDark ? 'text-gray-200' : 'text-gray-600'}`}`}>
       {label}
     </Text>
   </TouchableOpacity>
@@ -49,11 +42,7 @@ const FilterButton = ({ label, isActive, onPress, isDark }: FilterButtonProps) =
 const formatDate = (dateString: string | null) => {
   if (!dateString) { return 'Belum Verifikasi'; }
   const date = new Date(dateString);
-  return date.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 const MitraCard = ({ mitra, onPress }: MitraCardProps) => {
@@ -76,29 +65,27 @@ const MitraCard = ({ mitra, onPress }: MitraCardProps) => {
           </Text>
         </View>
       </View>
-      <View className="flex-row justify-between mt-4 pt-4 border-t border-gray-100 dark:border-zinc-700">
+      <View className="flex-row justify-between items-center mt-4 pt-4 border-t border-gray-100 dark:border-zinc-700">
         <View>
-          <Text className="text-sm text-gray-500 dark:text-gray-400">{mitra.tbl_kategori_usaha?.nama_kategori || 'Belum ada kategori'}</Text>
-          <Text className="text-sm text-gray-500 dark:text-gray-400">{mitra._count?.tbl_product || 0} produk</Text>
+          <Text className="font-semibold text-base text-gray-800 dark:text-gray-200">
+            {mitra.productCount ?? 0} Produk
+          </Text>
         </View>
         <View className="items-end">
-          <Text className="text-sm text-gray-500 dark:text-gray-400">{formatDate(mitra.verifiedAt)}</Text>
-          <Text className="text-sm text-gray-500 dark:text-gray-400">{mitra.nohp}</Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">{formatDate(mitra.verifiedAt ?? null)}</Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">{mitra.nohp}</Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 };
 
-// Tipe untuk navigasi
-type MitraNavProp = NavigationProp<{
-    EditMitraScreen: { mitra: any }; // Ganti `any` dengan tipe Mitra yang lebih spesifik jika ada
-}>;
 
+// --- Komponen Utama ---
 const ManajemenMitraScreen = () => {
-  const { isDark } = useTheme(); // Gunakan hook tema
+  const { isDark } = useTheme();
   const navigation = useNavigation<MitraNavProp>();
-  const [allMitra, setAllMitra] = useState<any[]>([]); // Ganti `any` dengan tipe Mitra
+  const [allMitra, setAllMitra] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('Semua');
   const [loading, setLoading] = useState(true);
@@ -106,18 +93,22 @@ const ManajemenMitraScreen = () => {
 
   const fetchMitra = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      if (!token) {throw new Error('Token tidak ditemukan');}
+      const baseUsers = await usersApi.getAll();
+      const umkmUsers = baseUsers.filter(user => user.tbl_level?.level === 'UMKM');
 
-      const response = await fetch('https://ekraf.asepharyana.tech/api/users', {
-        headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      const promises = umkmUsers.map(async (user) => {
+        try {
+          const products = await usersApi.getProducts(user.id_user);
+          return { ...user, productCount: products.length };
+        } catch (err) {
+          console.error(`Gagal mengambil produk untuk user ${user.id_user}:`, err);
+          return { ...user, productCount: 0 };
+        }
       });
-      if (!response.ok) {throw new Error('Gagal mengambil data mitra');}
-
-      const result = await response.json();
-      const umkmUsers = result.data.filter((user: any) => user.tbl_level.level === 'UMKM');
-      setAllMitra(umkmUsers);
+      const usersWithProductCount = await Promise.all(promises);
+      setAllMitra(usersWithProductCount);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -135,7 +126,7 @@ const ManajemenMitraScreen = () => {
         return true;
       })
       .filter(mitra =>
-        mitra.nama_user.toLowerCase().includes(searchQuery.toLowerCase())
+        (mitra.nama_user || '').toLowerCase().includes(searchQuery.toLowerCase())
       );
   }, [allMitra, filter, searchQuery]);
 
@@ -155,13 +146,12 @@ const ManajemenMitraScreen = () => {
       </SafeAreaView>
     );
   }
-
   if (error) {
     return (
       <SafeAreaView className="flex-1 justify-center items-center bg-gray-100 dark:bg-zinc-900 p-4">
         <Text className="text-red-500 text-center">{error}</Text>
         <TouchableOpacity onPress={fetchMitra} className="mt-4 bg-yellow-500 px-4 py-2 rounded-lg">
-            <Text className="text-white font-semibold">Coba Lagi</Text>
+          <Text className="text-white font-semibold">Coba Lagi</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -172,32 +162,20 @@ const ManajemenMitraScreen = () => {
       <FlatList
         ListHeaderComponent={
           <>
-            <View className="px-4 pt-4 pb-2">
-              <Text className="text-3xl font-bold text-slate-800 dark:text-slate-100">Manajemen Mitra</Text>
-            </View>
+            <View className="px-4 pt-4 pb-2"><Text className="text-3xl font-bold text-slate-800 dark:text-slate-100">Manajemen Mitra</Text></View>
             <View className="bg-yellow-400 rounded-2xl mx-4 p-4 shadow-lg">
               <Text className="text-xl font-bold text-white">Admin Panel</Text>
               <Text className="text-sm text-white mb-4">Dashboard / Daftar Mitra</Text>
               <View className="flex-row justify-between space-x-3">
-                <StatCard count={stats.total} label="Total Mitra" />
-                <StatCard count={stats.aktif} label="Aktif" />
-                <StatCard count={stats.nonAktif} label="Non-aktif" />
+                <StatCard count={stats.total} label="Total Mitra" /><StatCard count={stats.aktif} label="Aktif" /><StatCard count={stats.nonAktif} label="Non-aktif" />
               </View>
             </View>
-            <View className="p-4 bg-gray-100 dark:bg-zinc-900">
-              <View className="bg-white dark:bg-zinc-800 p-2 rounded-lg border border-gray-300 dark:border-zinc-700 flex-row items-center">
-                <TextInput
-                  placeholder="Cari Mitra..."
-                  placeholderTextColor={placeholderColor}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  className="text-base flex-1 text-black dark:text-white"
-                />
+            <View className="p-4">
+              <View className="bg-white dark:bg-zinc-800 p-2 rounded-lg border border-gray-200 dark:border-zinc-700 flex-row items-center">
+                <TextInput placeholder="Cari Mitra..." placeholderTextColor={placeholderColor} value={searchQuery} onChangeText={setSearchQuery} className="text-base flex-1 text-black dark:text-white h-10 px-2" />
               </View>
               <View className="flex-row space-x-2 mt-4">
-                <FilterButton label="Semua" isActive={filter === 'Semua'} onPress={() => setFilter('Semua')} isDark={isDark} />
-                <FilterButton label="Aktif" isActive={filter === 'Aktif'} onPress={() => setFilter('Aktif')} isDark={isDark} />
-                <FilterButton label="Non-Aktif" isActive={filter === 'NonAktif'} onPress={() => setFilter('NonAktif')} isDark={isDark} />
+                <FilterButton label="Semua" isActive={filter === 'Semua'} onPress={() => setFilter('Semua')} isDark={isDark} /><FilterButton label="Aktif" isActive={filter === 'Aktif'} onPress={() => setFilter('Aktif')} isDark={isDark} /><FilterButton label="Non-Aktif" isActive={filter === 'NonAktif'} onPress={() => setFilter('NonAktif')} isDark={isDark} />
               </View>
               <Text className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-6 mb-2">Daftar Mitra</Text>
             </View>
@@ -205,11 +183,7 @@ const ManajemenMitraScreen = () => {
         }
         data={filteredMitra}
         renderItem={({ item }) => (
-          <MitraCard
-            mitra={item}
-            isDark={isDark}
-            onPress={() => navigation.navigate('EditMitraScreen', { mitra: item })}
-          />
+          <MitraCard mitra={item} isDark={isDark} onPress={() => navigation.navigate('EditMitraScreen', { mitra: item })} />
         )}
         keyExtractor={(item) => item.id_user.toString()}
         contentContainerStyle={styles.contentContainer}
@@ -221,13 +195,8 @@ const ManajemenMitraScreen = () => {
   );
 };
 
-import { StyleSheet } from 'react-native';
-
 const styles = StyleSheet.create({
-  contentContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
+  contentContainer: { paddingHorizontal: 16, paddingBottom: 16 },
 });
 
 export default ManajemenMitraScreen;
