@@ -30,6 +30,7 @@ import EditMitraScreen from './app/Forms/EditMitraScreen';
 
 import './global.css';
 import { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
+import FormProdukScreen from './app/Forms/FormProdukScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -91,15 +92,15 @@ const AddProdukTabBarIcon = ({ focused, color }: TabBarIconProps) => (
 );
 
 const HeaderThemeToggleButton = () => {
-    const { isDark, toggleTheme } = useTheme();
-    return (
-        <TouchableOpacity
-            onPress={toggleTheme}
-            style={styles.headerRightButton}
-            accessibilityLabel="Toggle dark mode">
-            <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={isDark ? '#FFAA01' : '#18181b'} />
-        </TouchableOpacity>
-    );
+  const { isDark, toggleTheme } = useTheme();
+  return (
+    <TouchableOpacity
+      onPress={toggleTheme}
+      style={styles.headerRightButton}
+      accessibilityLabel="Toggle dark mode">
+      <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={isDark ? '#FFAA01' : '#18181b'} />
+    </TouchableOpacity>
+  );
 };
 
 function MainTabNavigator() {
@@ -144,16 +145,16 @@ function MainTabNavigator() {
 }
 
 function getHeaderTitle(route: RouteProp<ParamListBase, 'MainApp'>) {
-    const routeName = getFocusedRouteNameFromRoute(route) ?? 'Dashboard';
-    switch (routeName) {
-        case 'Manajemen Mitra': return 'Manajemen Mitra';
-        case 'Manajemen Produk': return 'Manajemen Produk';
-        case 'Add Produk': return 'Tambah Produk';
-        case 'Profil': return 'Profil';
-        case 'Dashboard':
-        default:
-            return 'Dashboard';
-    }
+  const routeName = getFocusedRouteNameFromRoute(route) ?? 'Dashboard';
+  switch (routeName) {
+    case 'Manajemen Mitra': return 'Manajemen Mitra';
+    case 'Manajemen Produk': return 'Manajemen Produk';
+    case 'Add Produk': return 'Tambah Produk';
+    case 'Profil': return 'Profil';
+    case 'Dashboard':
+    default:
+      return 'Dashboard';
+  }
 }
 
 function AppContent() {
@@ -182,15 +183,22 @@ function AppContent() {
           })}
         />
         <Stack.Screen
-            name="EditMitraScreen"
-            component={EditMitraScreen}
-            options={{
-                headerShown: true,
-                headerTitle: 'Edit Mitra',
-                headerStyle: { backgroundColor: isDark ? '#18181b' : '#fff' },
-                headerTitleStyle: { color: isDark ? '#fff' : '#18181b' },
-                headerTintColor: isDark ? '#fff' : '#18181b',
-            }}
+          name="EditMitraScreen"
+          component={EditMitraScreen}
+          options={{
+            headerShown: true,
+            headerTitle: 'Edit Mitra',
+            headerStyle: { backgroundColor: isDark ? '#18181b' : '#fff' },
+            headerTitleStyle: { color: isDark ? '#fff' : '#18181b' },
+            headerTintColor: isDark ? '#fff' : '#18181b',
+          }}
+        />
+        <Stack.Screen
+          name="FormProdukScreen"
+          component={FormProdukScreen}
+          options={{
+            presentation: 'modal', // Tampil sebagai modal dari bawah
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>
@@ -198,11 +206,11 @@ function AppContent() {
 }
 
 export default function App() {
-    return (
-        <ThemeProvider>
-            <AppContent />
-        </ThemeProvider>
-    );
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
 }
 
 const styles = StyleSheet.create({

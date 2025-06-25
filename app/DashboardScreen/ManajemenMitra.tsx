@@ -162,7 +162,6 @@ const ManajemenMitraScreen = () => {
       <FlatList
         ListHeaderComponent={
           <>
-            <View className="px-4 pt-4 pb-2"><Text className="text-3xl font-bold text-slate-800 dark:text-slate-100">Manajemen Mitra</Text></View>
             <View className="bg-yellow-400 rounded-2xl mx-4 p-4 shadow-lg">
               <Text className="text-xl font-bold text-white">Admin Panel</Text>
               <Text className="text-sm text-white mb-4">Dashboard / Daftar Mitra</Text>
