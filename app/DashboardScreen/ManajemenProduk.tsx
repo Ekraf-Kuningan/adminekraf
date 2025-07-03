@@ -87,8 +87,8 @@ const ProductCard = ({ product, onEdit, onDelete, onStatusChange, isUpdatingStat
                 </View>
                 <Text className="text-sm text-gray-500 dark:text-gray-400">Oleh: {product.users?.name ?? product.owner_name}</Text>
                 <View className="flex-row justify-between items-center mt-3">
-                    <Text className="text-base font-bold text-yellow-500">Rp {product.price.toLocaleString('id-ID')}</Text>
-                    <Text className="text-sm text-gray-600 dark:text-gray-300">Stok: {product.stock}</Text>
+                    <Text className="text-base font-bold text-yellow-500">Rp {(product.price ?? 0).toLocaleString('id-ID')}</Text>
+                    <Text className="text-sm text-gray-600 dark:text-gray-300">Stok: {product.stock ?? 0}</Text>
                 </View>
             </View>
             <View className="flex-row border-t border-gray-100 dark:border-zinc-700">

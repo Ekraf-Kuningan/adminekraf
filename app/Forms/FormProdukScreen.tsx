@@ -172,7 +172,7 @@ const FormProdukScreen = () => {
                   value={
                     formData.price === 0
                       ? ''
-                      : formData.price.toLocaleString('id-ID')
+                      : (formData.price ?? 0).toLocaleString('id-ID')
                   }
                   onChangeText={v => {
                     // Remove non-digit, parse to number
@@ -183,7 +183,7 @@ const FormProdukScreen = () => {
                 />
                 {formData.price > 0 && (
                   <Text className="text-xs text-gray-500 mt-1">
-                    Rp {formData.price.toLocaleString('id-ID')}
+                    Rp {(formData.price ?? 0).toLocaleString('id-ID')}
                   </Text>
                 )}
               </View>

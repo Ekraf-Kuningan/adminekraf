@@ -48,10 +48,10 @@ const StatCard = ({ icon, label, value, color, loading }: { icon: string; label:
  */
 const RecentProductCard = ({ product, onPress }: { product: Product, onPress: () => void }) => (
     <TouchableOpacity onPress={onPress} className="w-44 mr-4 bg-white dark:bg-zinc-800 rounded-xl shadow-md shadow-gray-200/50 dark:shadow-none overflow-hidden border border-gray-100 dark:border-zinc-700">
-        <Image source={{ uri: product.gambar || 'https://placehold.co/200x200/e2e8f0/e2e8f0' }} className="w-full h-24" />
+        <Image source={{ uri: product.image ?? 'https://placehold.co/200x200/e2e8f0/e2e8f0' }} className="w-full h-24" />
         <View className="p-3">
-            <Text className="text-sm font-semibold text-gray-800 dark:text-gray-100" numberOfLines={1}>{product.nama_produk}</Text>
-            <Text className="text-xs text-yellow-600 dark:text-yellow-500 font-bold mt-1">Rp {product.harga.toLocaleString('id-ID')}</Text>
+            <Text className="text-sm font-semibold text-gray-800 dark:text-gray-100" numberOfLines={1}>{product.name}</Text>
+            <Text className="text-xs text-yellow-600 dark:text-yellow-500 font-bold mt-1">Rp {(product.price ?? 0).toLocaleString('id-ID')}</Text>
         </View>
     </TouchableOpacity>
 );
@@ -100,7 +100,7 @@ const DashboardAdminScreen = () => {
         masterDataApi.getBusinessCategories(),
       ]);
 
-      const umkmUsers = userResponse.filter(u => u.tbl_level?.level === 'UMKM');
+      const umkmUsers = userResponse.filter(u => u.levels?.name === 'UMKM');
 
       setStats({
         users: String(umkmUsers.length),
@@ -112,7 +112,7 @@ const DashboardAdminScreen = () => {
       setRecentUsers(umkmUsers.slice(0, 3));
 
     } catch (e: any) {
-      setError(e.message || 'Terjadi kesalahan saat memuat data');
+      setError(e.message ?? 'Terjadi kesalahan saat memuat data');
     } finally {
       setLoading(false);
     }
@@ -137,7 +137,7 @@ const DashboardAdminScreen = () => {
                     Dashboard
                 </Text>
                 <Text className="text-md text-gray-500 dark:text-gray-400">
-                    Selamat Datang, {user?.nama_user || 'Admin'}!
+                    Selamat Datang, {user?.name ?? 'Admin'}!
                 </Text>
             </View>
             <TouchableOpacity className="bg-white dark:bg-zinc-800 p-3 rounded-full border border-gray-200 dark:border-zinc-700">
@@ -167,7 +167,7 @@ const DashboardAdminScreen = () => {
                 <View className="w-full flex-row justify-center"><ActivityIndicator size="small" color="#F59E0B" /></View>
             ) : (
                 recentProducts.map(product => (
-                    <RecentProductCard key={product.id_produk} product={product} onPress={() => navigation.navigate('FormProdukScreen', { product })} />
+                    <RecentProductCard key={product.id} product={product} onPress={() => navigation.navigate('FormProdukScreen', { product })} />
                 ))
             )}
           </ScrollView>
@@ -184,10 +184,10 @@ const DashboardAdminScreen = () => {
             ) : (
                 recentUsers.map(u => (
                     <ActivityItem
-                        key={`user-${u.id_user}`}
+                        key={`user-${u.id}`}
                         icon="user-plus"
-                        text={<Text>Mitra baru <Text className="font-bold">{u.nama_user}</Text> telah mendaftar.</Text>}
-                        time={new Date(u.verifiedAt || Date.now()).toLocaleDateString('id-ID', {day: 'numeric', month: 'long'})}
+                        text={<Text>Mitra baru <Text className="font-bold">{u.name}</Text> telah mendaftar.</Text>}
+                        time={new Date(u.verifiedAt ?? Date.now()).toLocaleDateString('id-ID', {day: 'numeric', month: 'long'})}
                         iconColor="#3B82F6"
                     />
                 ))
