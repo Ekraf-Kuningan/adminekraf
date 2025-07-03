@@ -93,10 +93,10 @@ const ProfileScreen = () => {
         </View>
 
         <Text className={`text-3xl font-bold mt-4 capitalize ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-          {userData?.username || 'Username'}
+          {userData?.username ?? 'Username'}
         </Text>
         <Text className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-          {userData?.level || 'Level'}
+          {userData?.level ?? 'Level'}
         </Text>
       </View>
 
@@ -104,13 +104,13 @@ const ProfileScreen = () => {
         <View className={`flex-row justify-between py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <Text className={`text-base ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Nama Lengkap</Text>
           <Text className={`text-base font-semibold capitalize ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-            {userData?.nama_user || 'Nama Pengguna'}
+            {userData?.name ?? 'Nama Pengguna'}
           </Text>
         </View>
         <View className="flex-row justify-between py-3">
           <Text className={`text-base ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Email</Text>
           <Text className={`text-base font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-            {userData?.email || 'email@contoh.com'}
+            {userData?.email ?? 'email@contoh.com'}
           </Text>
         </View>
       </View>

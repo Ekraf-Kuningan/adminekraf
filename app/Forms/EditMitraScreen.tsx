@@ -38,9 +38,9 @@ const FormInput: React.FC<FormInputProps> = ({ label, value, onChangeText, ...pr
 const EditMitraScreen: React.FC<any> = ({ route, navigation }) => {
   const { mitra } = route.params;
 
-  const [namaUser, setNamaUser] = useState(mitra.nama_user);
+  const [namaUser, setNamaUser] = useState(mitra.name);
   const [email, setEmail] = useState(mitra.email);
-  const [nohp, setNohp] = useState(mitra.nohp);
+  const [nohp, setNohp] = useState(mitra.phone_number);
   const [loading, setLoading] = useState(false);
 
   const handleUpdate = async () => {
@@ -48,12 +48,12 @@ const EditMitraScreen: React.FC<any> = ({ route, navigation }) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
       const body = JSON.stringify({
-        nama_user: namaUser,
+        name: namaUser,
         email: email,
-        nohp: nohp,
+        phone_number: nohp,
       });
 
-      const response = await fetch(`https://ekraf.asepharyana.tech/api/users/${mitra.id_user}`, {
+      const response = await fetch(`https://ekraf.asepharyana.tech/api/users/${mitra.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const EditMitraScreen: React.FC<any> = ({ route, navigation }) => {
   const confirmDelete = () => {
     Alert.alert(
       'Konfirmasi Hapus',
-      `Apakah Anda yakin ingin menghapus mitra "${mitra.nama_user}"?`,
+      `Apakah Anda yakin ingin menghapus mitra "${mitra.name}"?`,
       [
         { text: 'Batal', style: 'cancel' },
         { text: 'Hapus', style: 'destructive', onPress: handleDelete },
@@ -91,7 +91,7 @@ const EditMitraScreen: React.FC<any> = ({ route, navigation }) => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`https://ekraf.asepharyana.tech/api/users/${mitra.id_user}`, {
+      const response = await fetch(`https://ekraf.asepharyana.tech/api/users/${mitra.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });

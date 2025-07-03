@@ -72,23 +72,23 @@ const HeaderStats = ({ products }: { products: Product[] }) => {
  * Komponen Kartu Produk dengan UI yang disempurnakan
  */
 const ProductCard = ({ product, onEdit, onDelete, onStatusChange, isUpdatingStatus }: { product: Product; onEdit: () => void; onDelete: () => void; onStatusChange: () => void; isUpdatingStatus: boolean; }) => {
-    const statusInfo = statusOptions.find(opt => opt.value === product.status_produk) || { container: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-600 dark:text-gray-400', label: 'N/A', color: '#6B7280', icon: 'help-circle' };
+    const statusInfo = statusOptions.find(opt => opt.value === product.status_produk) ?? { container: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-600 dark:text-gray-400', label: 'N/A', color: '#6B7280', icon: 'help-circle' };
 
     return (
         <View className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm mb-4 overflow-hidden">
-            <Image source={{ uri: product.gambar || 'https://placehold.co/600x400/e2e8f0/e2e8f0' }} className="w-full h-40" resizeMode="cover" />
+            <Image source={{ uri: product.image ?? 'https://placehold.co/600x400/e2e8f0/e2e8f0' }} className="w-full h-40" resizeMode="cover" />
             <View className="p-4">
                 <View className="flex-row justify-between items-start mb-2">
-                    <Text className="text-lg font-bold text-gray-800 dark:text-gray-100 flex-1 pr-2" numberOfLines={2}>{product.nama_produk}</Text>
+                    <Text className="text-lg font-bold text-gray-800 dark:text-gray-100 flex-1 pr-2" numberOfLines={2}>{product.name}</Text>
                     {/* Tombol status dengan penanda visual (chevron-down) */}
                     <TouchableOpacity onPress={onStatusChange} disabled={isUpdatingStatus} style={{ backgroundColor: statusInfo.color }} className={'px-3 py-1.5 rounded-full flex-row items-center'}>
                         {isUpdatingStatus ? <ActivityIndicator size="small" color="white" /> : <><Icon name={statusInfo.icon} size={14} color="white" /><Text className={'font-semibold text-xs text-white ml-1.5'}>{statusInfo.label}</Text><Icon name="chevron-down" size={16} color="white" className="ml-1 opacity-75" /></>}
                     </TouchableOpacity>
                 </View>
-                <Text className="text-sm text-gray-500 dark:text-gray-400">Oleh: {product.tbl_user?.nama_user || product.nama_pelaku}</Text>
+                <Text className="text-sm text-gray-500 dark:text-gray-400">Oleh: {product.users?.name ?? product.owner_name}</Text>
                 <View className="flex-row justify-between items-center mt-3">
-                    <Text className="text-base font-bold text-yellow-500">Rp {product.harga.toLocaleString('id-ID')}</Text>
-                    <Text className="text-sm text-gray-600 dark:text-gray-300">Stok: {product.stok}</Text>
+                    <Text className="text-base font-bold text-yellow-500">Rp {product.price.toLocaleString('id-ID')}</Text>
+                    <Text className="text-sm text-gray-600 dark:text-gray-300">Stok: {product.stock}</Text>
                 </View>
             </View>
             <View className="flex-row border-t border-gray-100 dark:border-zinc-700">
@@ -110,7 +110,7 @@ const ManajemenProdukScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [isStatusModalVisible, setStatusModalVisible] = useState(false);
+  const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
 
@@ -149,11 +149,11 @@ const ManajemenProdukScreen = () => {
 
   const handleUpdateStatus = async (newStatus: ProductStatus) => {
     if (!selectedProduct) {return;}
-    setStatusModalVisible(false);
-    setUpdatingStatusId(selectedProduct.id_produk);
+    setIsStatusModalVisible(false);
+    setUpdatingStatusId(selectedProduct.id);
     try {
-      await productsApi.update(selectedProduct.id_produk, { status_produk: newStatus });
-      setProducts(prev => prev.map(p => p.id_produk === selectedProduct.id_produk ? { ...p, status_produk: newStatus } : p));
+      await productsApi.update(selectedProduct.id, { status_produk: newStatus });
+      setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, status_produk: newStatus } : p));
     } catch (e: any) {
       Alert.alert('Error', `Gagal mengubah status produk: ${e.message}`);
     } finally {
@@ -162,8 +162,8 @@ const ManajemenProdukScreen = () => {
     }
   };
 
-  const openStatusModal = (product: Product) => { setSelectedProduct(product); setStatusModalVisible(true); };
-  const handleDelete = (productId: number) => { Alert.alert( 'Hapus Produk', 'Apakah Anda yakin?', [{ text: 'Batal' }, { text: 'Hapus', style: 'destructive', onPress: async () => { try { await productsApi.delete(productId); setProducts(p => p.filter(i => i.id_produk !== productId)); } catch (e: any) { Alert.alert('Error', e.message); }}}]);};
+  const openStatusModal = (product: Product) => { setSelectedProduct(product); setIsStatusModalVisible(true); };
+  const handleDelete = (productId: number) => { Alert.alert( 'Hapus Produk', 'Apakah Anda yakin?', [{ text: 'Batal' }, { text: 'Hapus', style: 'destructive', onPress: async () => { try { await productsApi.delete(productId); setProducts(p => p.filter(i => i.id !== productId)); } catch (e: any) { Alert.alert('Error', e.message); }}}]);};
   const handleLoadMore = () => { if (page < totalPages && !loading) { setPage(p => p + 1); } };
 
   const placeholderColor = isDark ? '#9CA3AF' : '#6B7281';
@@ -189,9 +189,9 @@ const ManajemenProdukScreen = () => {
             </>
         }
         renderItem={({ item }) => (
-          <ProductCard product={item} onEdit={() => navigation.navigate('FormProdukScreen', { product: item })} onDelete={() => handleDelete(item.id_produk)} onStatusChange={() => openStatusModal(item)} isUpdatingStatus={updatingStatusId === item.id_produk} />
+          <ProductCard product={item} onEdit={() => navigation.navigate('FormProdukScreen', { product: item })} onDelete={() => handleDelete(item.id)} onStatusChange={() => openStatusModal(item)} isUpdatingStatus={updatingStatusId === item.id} />
         )}
-        keyExtractor={(item) => item.id_produk.toString()}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.contentContainer}
         onRefresh={() => {setPage(1); fetchProducts(1, true);}}
         refreshing={loading && page === 1}
@@ -201,8 +201,8 @@ const ManajemenProdukScreen = () => {
         ListEmptyComponent={!loading && !error ? <View className="items-center justify-center mt-20"><Text className="text-gray-500 dark:text-gray-400">Tidak ada produk ditemukan.</Text></View> : null}
       />
 
-      <Modal transparent={true} visible={isStatusModalVisible} animationType="slide" onRequestClose={() => setStatusModalVisible(false)}>
-        <Pressable onPress={() => setStatusModalVisible(false)} style={styles.modalOverlay}>
+      <Modal transparent={true} visible={isStatusModalVisible} animationType="slide" onRequestClose={() => setIsStatusModalVisible(false)}>
+        <Pressable onPress={() => setIsStatusModalVisible(false)} style={styles.modalOverlay}>
           <Pressable className="w-full bg-white dark:bg-zinc-800 rounded-t-2xl absolute bottom-0 pb-6">
             <View className="w-12 h-1.5 bg-gray-300 dark:bg-zinc-600 rounded-full self-center my-3" />
             <Text className="text-lg font-bold p-4 pt-0 text-center text-gray-800 dark:text-gray-200">Ubah Status Produk</Text>

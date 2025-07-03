@@ -20,7 +20,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
 import { CustomPicker } from '../../components/CustomPicker';
 import { productsApi, uploaderApi, masterDataApi } from '../../lib/api';
-import { Product, ProductPayload, KategoriUsaha } from '../../lib/types';
+import { Product, ProductPayload, BusinessCategory } from '../../lib/types';
 import { useTheme } from '../Context/ThemeContext';
 
 type FormRouteProp = RouteProp<{ params: { product?: Product } }, 'params'>;
@@ -64,18 +64,18 @@ const FormProdukScreen = () => {
   const isEditMode = !!existingProduct;
 
   const [formData, setFormData] = useState<ProductPayload>({
-    nama_produk: existingProduct?.nama_produk || '',
-    nama_pelaku: existingProduct?.nama_pelaku || '',
-    deskripsi: existingProduct?.deskripsi || '',
-    harga: existingProduct?.harga || 0,
-    stok: existingProduct?.stok || 0,
-    nohp: existingProduct?.nohp || '',
-    id_kategori_usaha: existingProduct?.id_kategori_usaha || 0,
-    gambar: existingProduct?.gambar || '',
+    name: existingProduct?.name ?? '',
+    owner_name: existingProduct?.owner_name ?? '',
+    description: existingProduct?.description ?? '',
+    price: existingProduct?.price ?? 0,
+    stock: existingProduct?.stock ?? 0,
+    phone_number: existingProduct?.phone_number ?? '',
+    business_category_id: existingProduct?.business_category_id ?? 0,
+    image: existingProduct?.image ?? '',
   });
 
   const [imageAsset, setImageAsset] = useState<Asset | null>(null);
-  const [categories, setCategories] = useState<KategoriUsaha[]>([]);
+  const [categories, setCategories] = useState<BusinessCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,12 +97,12 @@ const FormProdukScreen = () => {
     const asset = result.assets?.[0];
     if (asset) {
       setImageAsset(asset);
-      setFormData(prev => ({ ...prev, gambar: asset.uri || prev.gambar }));
+      setFormData(prev => ({ ...prev, image: asset.uri ?? prev.image }));
     }
   };
 
   const handleSubmit = async () => {
-    if (!formData.nama_produk || !formData.harga || !formData.id_kategori_usaha) {
+    if (!formData.name || !formData.price || !formData.business_category_id) {
       Alert.alert('Input Tidak Lengkap', 'Nama produk, harga, dan kategori wajib diisi.');
       return;
     }
@@ -112,10 +112,10 @@ const FormProdukScreen = () => {
     try {
       if (imageAsset) {
         const imageUrl = await uploaderApi.uploadImage(imageAsset);
-        finalPayload.gambar = imageUrl;
+        finalPayload.image = imageUrl;
       }
       if (isEditMode) {
-        await productsApi.update(existingProduct.id_produk, finalPayload);
+        await productsApi.update(existingProduct.id, finalPayload);
       } else {
         await productsApi.create(finalPayload);
       }
@@ -141,8 +141,8 @@ const FormProdukScreen = () => {
           <View>
             <Text className="text-lg font-bold mb-3 text-gray-800 dark:text-gray-200">Gambar Produk</Text>
             <TouchableOpacity onPress={handleImagePick} className="items-center justify-center h-48 bg-gray-200 dark:bg-zinc-800 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 dark:border-zinc-700">
-                {formData.gambar ? (
-                    <Image source={{ uri: formData.gambar }} className="w-full h-full" resizeMode="cover" />
+                {formData.image ? (
+                    <Image source={{ uri: formData.image }} className="w-full h-full" resizeMode="cover" />
                 ) : (
                     <View className="items-center">
                         <Icon name="camera" size={40} color={placeholderColor} />
@@ -155,9 +155,9 @@ const FormProdukScreen = () => {
           {/* Section: Informasi Dasar */}
           <View className="space-y-4">
              <Text className="text-lg font-bold text-gray-800 dark:text-gray-200">Informasi Dasar</Text>
-            <FormInput label="Nama Produk" iconName="box" placeholder="Contoh: Kopi Gula Aren" value={formData.nama_produk} onChangeText={v => handleInputChange('nama_produk', v)} />
-            <FormInput label="Nama Pelaku Usaha" iconName="user" placeholder="Nama Anda atau Brand" value={formData.nama_pelaku} onChangeText={v => handleInputChange('nama_pelaku', v)} />
-            <FormInput label="Deskripsi (Opsional)" iconName="file-text" placeholder="Jelaskan keunikan produk Anda..." value={formData.deskripsi} multiline numberOfLines={4} style={{ height: 120, textAlignVertical: 'top' }} />
+            <FormInput label="Nama Produk" iconName="box" placeholder="Contoh: Kopi Gula Aren" value={formData.name} onChangeText={v => handleInputChange('name', v)} />
+            <FormInput label="Nama Pelaku Usaha" iconName="user" placeholder="Nama Anda atau Brand" value={formData.owner_name} onChangeText={v => handleInputChange('owner_name', v)} />
+            <FormInput label="Deskripsi (Opsional)" iconName="file-text" placeholder="Jelaskan keunikan produk Anda..." value={formData.description} multiline numberOfLines={4} style={{ height: 120, textAlignVertical: 'top' }} />
           </View>
 
           {/* Section: Harga dan Stok */}
@@ -170,25 +170,25 @@ const FormProdukScreen = () => {
                   iconName="credit-card" // Menggunakan ikon 'credit-card' untuk rupiah
                   placeholder="50.000"
                   value={
-                    formData.harga === 0
+                    formData.price === 0
                       ? ''
-                      : formData.harga.toLocaleString('id-ID')
+                      : formData.price.toLocaleString('id-ID')
                   }
                   onChangeText={v => {
                     // Remove non-digit, parse to number
-                    const numeric = Number(v.replace(/[^0-9]/g, ''));
-                    handleInputChange('harga', numeric);
+                    const numeric = Number(v.replace(/\D/g, ''));
+                    handleInputChange('price', numeric);
                   }}
                   keyboardType="numeric"
                 />
-                {formData.harga > 0 && (
+                {formData.price > 0 && (
                   <Text className="text-xs text-gray-500 mt-1">
-                    Rp {formData.harga.toLocaleString('id-ID')}
+                    Rp {formData.price.toLocaleString('id-ID')}
                   </Text>
                 )}
               </View>
               <View className="flex-1">
-                  <FormInput label="Stok" iconName="package" placeholder="100" value={String(formData.stok === 0 ? '' : formData.stok)} onChangeText={v => handleInputChange('stok', Number(v.replace(/[^0-9]/g, '')))} keyboardType="numeric" />
+                  <FormInput label="Stok" iconName="package" placeholder="100" value={String(formData.stock === 0 ? '' : formData.stock)} onChangeText={v => handleInputChange('stock', Number(v.replace(/\D/g, '')))} keyboardType="numeric" />
               </View>
             </View>
           </View>
@@ -198,9 +198,9 @@ const FormProdukScreen = () => {
              <Text className="text-lg font-bold text-gray-800 dark:text-gray-200">Kategori & Kontak</Text>
             <View>
               <Text className="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-300">Kategori Usaha</Text>
-              <CustomPicker placeholder="Pilih Kategori Usaha..." items={categories.map(cat => ({ label: cat.nama_kategori, value: cat.id_kategori_usaha }))} selectedValue={formData.id_kategori_usaha} onValueChange={(value) => handleInputChange('id_kategori_usaha', value)} disabled={!categories.length} />
+              <CustomPicker placeholder="Pilih Kategori Usaha..." items={categories.map(cat => ({ label: cat.name, value: cat.id }))} selectedValue={formData.business_category_id} onValueChange={(value) => handleInputChange('business_category_id', value)} disabled={!categories.length} />
             </View>
-            <FormInput label="No. HP (Opsional)" iconName="phone" placeholder="08xxxxxxxxxx" value={formData.nohp || ''} onChangeText={v => handleInputChange('nohp', v)} keyboardType="phone-pad" />
+            <FormInput label="No. HP (Opsional)" iconName="phone" placeholder="08xxxxxxxxxx" value={formData.phone_number ?? ''} onChangeText={v => handleInputChange('phone_number', v)} keyboardType="phone-pad" />
           </View>
 
           {/* Submit Button */}

@@ -47,7 +47,7 @@ const formatDate = (dateString: string | null) => {
 
 const MitraCard = ({ mitra, onPress }: MitraCardProps) => {
   const isActive = !!mitra.verifiedAt;
-  const initial = mitra.nama_user ? mitra.nama_user.charAt(0).toUpperCase() : '?';
+  const initial = mitra.name ? mitra.name.charAt(0).toUpperCase() : '?';
 
   return (
     <TouchableOpacity onPress={onPress} className="bg-white dark:bg-zinc-800 p-4 rounded-lg shadow-sm mb-4">
@@ -56,7 +56,7 @@ const MitraCard = ({ mitra, onPress }: MitraCardProps) => {
           <Text className="text-gray-600 dark:text-gray-300 text-xl font-bold">{initial}</Text>
         </View>
         <View className="flex-1">
-          <Text className="text-lg font-bold text-gray-800 dark:text-gray-100" numberOfLines={1}>{mitra.nama_user}</Text>
+          <Text className="text-lg font-bold text-gray-800 dark:text-gray-100" numberOfLines={1}>{mitra.name}</Text>
           <Text className="text-sm text-gray-500 dark:text-gray-400">{mitra.email}</Text>
         </View>
         <View className={`px-3 py-1 rounded-full ${isActive ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'}`}>
@@ -73,7 +73,7 @@ const MitraCard = ({ mitra, onPress }: MitraCardProps) => {
         </View>
         <View className="items-end">
           <Text className="text-xs text-gray-500 dark:text-gray-400">{formatDate(mitra.verifiedAt ?? null)}</Text>
-          <Text className="text-xs text-gray-500 dark:text-gray-400">{mitra.nohp}</Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">{mitra.phone_number}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -96,14 +96,14 @@ const ManajemenMitraScreen = () => {
     setError(null);
     try {
       const baseUsers = await usersApi.getAll();
-      const umkmUsers = baseUsers.filter(user => user.tbl_level?.level === 'UMKM');
+      const umkmUsers = baseUsers.filter(user => user.levels?.name === 'UMKM');
 
       const promises = umkmUsers.map(async (user) => {
         try {
-          const products = await usersApi.getProducts(user.id_user);
+          const products = await usersApi.getProducts(user.id);
           return { ...user, productCount: products.length };
         } catch (err) {
-          console.error(`Gagal mengambil produk untuk user ${user.id_user}:`, err);
+          console.error(`Gagal mengambil produk untuk user ${user.id}:`, err);
           return { ...user, productCount: 0 };
         }
       });
@@ -126,7 +126,7 @@ const ManajemenMitraScreen = () => {
         return true;
       })
       .filter(mitra =>
-        (mitra.nama_user || '').toLowerCase().includes(searchQuery.toLowerCase())
+        (mitra.name ?? '').toLowerCase().includes(searchQuery.toLowerCase())
       );
   }, [allMitra, filter, searchQuery]);
 
@@ -185,7 +185,7 @@ const ManajemenMitraScreen = () => {
         renderItem={({ item }) => (
           <MitraCard mitra={item} isDark={isDark} onPress={() => navigation.navigate('EditMitraScreen', { mitra: item })} />
         )}
-        keyExtractor={(item) => item.id_user.toString()}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
         onRefresh={fetchMitra}
