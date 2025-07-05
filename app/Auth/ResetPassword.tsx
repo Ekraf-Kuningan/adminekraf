@@ -63,8 +63,8 @@ const ForgotPasswordScreen = ({ navigation }: { navigation: any }) => { // Nama 
     setLoading(true);
 
     try {
-      // Panggil fungsi dari objek authApi
-      const response = await authApi.forgotPassword(email);
+      // Panggil fungsi dari objek authApi dengan format yang benar
+      const response = await authApi.forgotPassword({email});
 
       // Gunakan PopupTemplate untuk pesan sukses
       showPopup(

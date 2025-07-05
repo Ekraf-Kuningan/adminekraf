@@ -5,9 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as T from './types';
 import {Asset} from 'react-native-image-picker';
 
+// API Base URLs from OpenAPI spec
 const API_BASE_URL = 'https://ekraf.asepharyana.tech/api';
 
-// --- SETUP AXIOS & HELPERS (Tidak berubah) ---
+// --- SETUP AXIOS & HELPERS ---
 const publicClient = axios.create({baseURL: API_BASE_URL});
 const privateClient: AxiosInstance = axios.create({baseURL: API_BASE_URL});
 
@@ -36,7 +37,7 @@ const handleError = (error: any, context: string): never => {
 };
 
 // ===================================
-// PRODUCTS API - Publik & Privat (DIPERBARUI)
+// PRODUCTS API - Sesuai dengan OpenAPI spec
 // ===================================
 export const productsApi = {
   getAll: (params?: {
@@ -44,54 +45,56 @@ export const productsApi = {
     limit?: number;
     q?: string;
     kategori?: number;
+    subsector?: number;
   }) =>
     publicClient
-      .get<T.PaginatedApiResponse<T.Product[]>>('/products', {params})
+      .get<{
+        message: string;
+        totalPages: number;
+        currentPage: number;
+        data: T.Product[];
+      }>('/products', {params})
       .then(res => res.data)
       .catch(e => handleError(e, 'mengambil daftar produk')),
 
   getById: (id: number) =>
     publicClient
-      .get<T.ApiResponse<T.Product>>(`/products/${id}`)
+      .get<{message: string; data: T.Product}>(`/products/${id}`)
       .then(res => res.data.data)
       .catch(e => handleError(e, `mengambil produk #${id}`)),
 
-  // --- FUNGSI CREATE DIPERBARUI ---
-  // Sekarang menerima objek ProductPayload, bukan FormData
   create: (data: T.ProductPayload) =>
     privateClient
-      .post<T.ApiResponse<T.Product>>('/products', data) // Header multipart/form-data dihapus
+      .post<{message: string; data: T.Product}>('/products', data)
       .then(res => res.data)
       .catch(e => handleError(e, 'membuat produk')),
 
-  // --- FUNGSI UPDATE DIPERBARUI ---
-  // Sekarang menerima objek UpdateProductPayload, bukan FormData
   update: (id: number, data: T.UpdateProductPayload) =>
     privateClient
-      .put<T.ApiResponse<T.Product>>(`/products/${id}`, data) // Header multipart/form-data dihapus
+      .put<{message: string; data: T.Product}>(`/products/${id}`, data)
       .then(res => res.data)
       .catch(e => handleError(e, `memperbarui produk #${id}`)),
 
-  // --- FUNGSI LAINNYA (TIDAK BERUBAH) ---
   delete: (id: number) =>
     privateClient
-      .delete<T.ApiMessageResponse>(`/products/${id}`)
+      .delete<{message: string}>(`/products/${id}`)
       .then(res => res.data)
       .catch(e => handleError(e, `menghapus produk #${id}`)),
 
-  createLink: (productId: number, data: T.CreateOlshopLinkData) =>
+  // Online store links management - sesuai OpenAPI
+  createLink: (productId: number, data: T.CreateOnlineStoreLinkData) =>
     privateClient
-      .post<T.ApiResponse<T.TblOlshopLink>>(`/products/${productId}/links`, data)
+      .post<{message: string; data: T.OnlineStoreLink}>(`/products/${productId}/links`, data)
       .then(res => res.data)
       .catch(e => handleError(e, `menambah link ke produk #${productId}`)),
 
   updateLink: (
     productId: number,
     linkId: number,
-    data: T.UpdateOlshopLinkData,
+    data: T.UpdateOnlineStoreLinkData,
   ) =>
     privateClient
-      .put<T.ApiResponse<T.TblOlshopLink>>(
+      .put<{message: string; data: T.OnlineStoreLink}>(
         `/products/${productId}/links/${linkId}`,
         data,
       )
@@ -99,9 +102,8 @@ export const productsApi = {
       .catch(e => handleError(e, `memperbarui link #${linkId}`)),
 };
 
-// ... (Sisa file: authApi, masterDataApi, usersApi, dll tidak berubah)
 // ===================================
-// AUTH API - Publik
+// AUTH API - Updated to match OpenAPI spec
 // ===================================
 export const authApi = {
   login: (
@@ -126,18 +128,29 @@ export const authApi = {
       .then(res => res.data)
       .catch(e => handleError(e, 'melakukan registrasi')),
 
-  forgotPassword: (email: string) =>
+  forgotPassword: (data: T.ForgotPasswordRequest) =>
     publicClient
-      .post<T.ForgotPasswordResponse>('/auth/forgot-password', {email})
+      .post<T.ForgotPasswordResponse>('/auth/forgot-password', data)
       .then(res => res.data)
       .catch(e => handleError(e, 'meminta reset password')),
+
+  resetPassword: (data: T.ResetPasswordRequest) =>
+    publicClient
+      .post<T.ResetPasswordResponse>('/auth/reset-password', data)
+      .then(res => res.data)
+      .catch(e => handleError(e, 'mereset password')),
+
+  verifyEmail: (data: T.VerifyEmailRequest) =>
+    publicClient
+      .post<T.VerifyEmailResponse>('/auth/verify-email', data)
+      .then(res => res.data)
+      .catch(e => handleError(e, 'memverifikasi email')),
 };
 // ===================================
-// UPLOADER API - Publik & Domain Berbeda
+// UPLOADER API - External service for file uploads
 // ===================================
 export const uploaderApi = {
   uploadImage: async (imageAsset: Asset): Promise<string> => {
-    // Gunakan URL yang sudah terbukti bekerja
     const uploaderUrl = 'https://apidl.asepharyana.cloud/api/uploader/ryzencdn';
 
     if (!imageAsset.uri || !imageAsset.fileName || !imageAsset.type) {
@@ -145,19 +158,17 @@ export const uploaderApi = {
     }
 
     const formData = new FormData();
-    // Nama field 'file' sesuai dokumentasi awal RyzenCDN
     formData.append('file', {
       uri: imageAsset.uri,
       type: imageAsset.type,
       name: imageAsset.fileName,
-    });
+    } as any);
 
     try {
       const uploadResponse = await fetch(uploaderUrl, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
-          // Content-Type tidak di-set manual
         },
         body: formData,
       });
@@ -165,7 +176,6 @@ export const uploaderApi = {
       const result: T.UploaderResponse = await uploadResponse.json();
 
       if (!uploadResponse.ok) {
-        // Jika status HTTP bukan 2xx, lempar error dengan pesan dari server
         throw new Error('Gagal mengunggah gambar ke server.');
       }
 
@@ -175,146 +185,132 @@ export const uploaderApi = {
         throw new Error('Respons server tidak valid setelah upload.');
       }
     } catch (error) {
-      // Teruskan ke handleError untuk penanganan error yang konsisten
       return handleError(error, 'mengunggah gambar');
     }
   },
 };
 
 // ===================================
-// MASTER DATA API - Publik
+// MASTER DATA API - Sesuai dengan OpenAPI spec
 // ===================================
 export const masterDataApi = {
   getBusinessCategories: () =>
     publicClient
-      .get<T.ApiResponse<T.BusinessCategory[]>>('/master-data/business-categories')
+      .get<{message: string; data: T.BusinessCategory[]}>('/master-data/business-categories')
       .then(res => res.data.data)
       .catch(e => handleError(e, 'mengambil kategori usaha')),
 
   getUserLevels: () =>
     publicClient
-      .get<T.ApiResponse<T.Level[]>>('/master-data/levels')
+      .get<{message: string; data: T.Level[]}>('/master-data/levels')
       .then(res => res.data.data)
       .catch(e => handleError(e, 'mengambil level pengguna')),
 
   getSubsectors: () =>
     publicClient
-      .get<T.ApiResponse<T.Subsector[]>>('/master-data/subsectors')
+      .get<{message: string; data: T.Subsector[]}>('/master-data/subsectors')
       .then(res => res.data.data)
       .catch(e => handleError(e, 'mengambil subsektor')),
 };
 
 // ===================================
-// USERS API - Privat
+// USERS API - Sesuai dengan OpenAPI spec
 // ===================================
 export const usersApi = {
   getOwnProfile: () =>
     privateClient
-      .get<T.ApiResponse<T.User>>('/users/profile')
+      .get<{message: string; data: T.UserProfile}>('/users/profile')
       .then(res => res.data.data)
       .catch(e => handleError(e, 'mengambil profil')),
 
   getAll: () =>
     privateClient
-      .get<T.ApiResponse<T.User[]>>('/users')
+      .get<{message: string; data: T.User[]}>('/users')
       .then(res => res.data.data)
       .catch(e => handleError(e, 'mengambil daftar pengguna')),
 
-  getById: (id: number) =>
+  getById: (id: string) => // Ubah ke string sesuai OpenAPI
     privateClient
-      .get<T.ApiResponse<T.User>>(`/users/${id}`)
+      .get<{message: string; data: T.User}>(`/users/${id}`)
       .then(res => res.data.data)
       .catch(e => handleError(e, `mengambil pengguna #${id}`)),
 
-  update: (id: number, data: Partial<T.User>) =>
+  update: (id: string, data: Partial<T.User>) => // Ubah ke string sesuai OpenAPI
     privateClient
-      .put<T.ApiMessageResponse>(`/users/${id}`, data)
+      .put<{message: string}>(`/users/${id}`, data)
       .then(res => res.data)
       .catch(e => handleError(e, `memperbarui pengguna #${id}`)),
 
-  delete: (id: number) =>
+  delete: (id: string) => // Ubah ke string sesuai OpenAPI
     privateClient
-      .delete<T.ApiMessageResponse>(`/users/${id}`)
+      .delete<{message: string}>(`/users/${id}`)
       .then(res => res.data)
       .catch(e => handleError(e, `menghapus pengguna #${id}`)),
 
-  getProducts: (userId: number) =>
+  getProducts: (userId: string) => // Ubah ke string sesuai OpenAPI
     privateClient
-      .get<T.ApiResponse<T.Product[]>>(`/users/${userId}/products`)
+      .get<{message: string; data: T.Product[]}>(`/users/${userId}/products`)
       .then(res => res.data.data)
       .catch(e => handleError(e, `mengambil produk pengguna #${userId}`)),
 
-  getArticles: (userId: number) =>
+  getArticles: (userId: string) => // Ubah ke string sesuai OpenAPI
     privateClient
-      .get<T.ApiResponse<T.Article[]>>(`/users/${userId}/articles`)
+      .get<{message: string; data: T.Article[]}>(`/users/${userId}/articles`)
       .then(res => res.data.data)
       .catch(e => handleError(e, `mengambil artikel pengguna #${userId}`)),
 };
 
 // ===================================
-// ARTICLES API - Privat
+// ARTICLES API - Sesuai dengan OpenAPI spec
 // ===================================
 export const articlesApi = {
+  getAll: () =>
+    privateClient
+      .get<{message: string; data: T.Article[]}>('/articles')
+      .then(res => res.data.data)
+      .catch(e => handleError(e, 'mengambil daftar artikel')),
+
   create: (data: T.CreateArticleData) =>
     privateClient
-      .post<T.ApiResponse<T.Article>>('/articles', data)
+      .post<{message: string; data: T.Article}>('/articles', data)
       .then(res => res.data)
       .catch(e => handleError(e, 'membuat artikel')),
 
   getById: (id: number) =>
     privateClient
-      .get<T.ApiResponse<T.Article>>(`/articles/${id}`)
+      .get<{message: string; data: T.Article}>(`/articles/${id}`)
       .then(res => res.data.data)
       .catch(e => handleError(e, `mengambil artikel #${id}`)),
 
   update: (id: number, data: T.UpdateArticleData) =>
     privateClient
-      .put<T.ApiResponse<T.Article>>(`/articles/${id}`, data)
+      .put<{message: string; data: T.Article}>(`/articles/${id}`, data)
       .then(res => res.data)
       .catch(e => handleError(e, `memperbarui artikel #${id}`)),
 
   delete: (id: number) =>
     privateClient
-      .delete<T.ApiMessageResponse>(`/articles/${id}`)
+      .delete<{message: string}>(`/articles/${id}`)
       .then(res => res.data)
       .catch(e => handleError(e, `menghapus artikel #${id}`)),
 };
 
 // ===================================
-// KATEGORI USAHA API - Privat
+// KATEGORI USAHA API - Legacy, masih digunakan di beberapa komponen
 // ===================================
-// export const kategoriUsahaApi = {
-//   getById: (id: number) =>
-//     publicClient
-//       .get<T.ApiResponse<T.KategoriUsaha>>(`/kategori-usaha/${id}`)
-//       .then(res => res.data.data)
-//       .catch(e => handleError(e, `mengambil kategori usaha #${id}`)),
-
-//   update: (id: number, data: {nama_kategori_usaha: string}) =>
-//     privateClient
-//       .put<T.ApiResponse<T.KategoriUsaha>>(`/kategori-usaha/${id}`, data)
-//       .then(res => res.data)
-//       .catch(e => handleError(e, `memperbarui kategori usaha #${id}`)),
-
-//   delete: (id: number) =>
-//     privateClient
-//       .delete<T.ApiMessageResponse>(`/kategori-usaha/${id}`)
-//       .then(res => res.data)
-//       .catch(e => handleError(e, `menghapus kategori usaha #${id}`)),
-// };
 export const kategoriUsahaApi = {
   /**
    * Membuat kategori usaha baru.
    */
   create: (data: T.KategoriUsahaPayload) =>
     privateClient
-      .post<T.ApiResponse<T.KategoriUsaha>>('/kategori-usaha', data)
+      .post<{message: string; data: T.KategoriUsaha}>('/business-categories', data)
       .then(res => res.data)
       .catch(e => handleError(e, 'membuat kategori usaha')),
 
   getById: (id: number) =>
     publicClient
-      .get<T.ApiResponse<T.KategoriUsaha>>(`/kategori-usaha/${id}`)
+      .get<{message: string; data: T.KategoriUsaha}>(`/business-categories/${id}`)
       .then(res => res.data.data)
       .catch(e => handleError(e, `mengambil kategori usaha #${id}`)),
 
@@ -323,7 +319,7 @@ export const kategoriUsahaApi = {
    */
   update: (id: number, data: Partial<T.KategoriUsahaPayload>) =>
     privateClient
-      .put<T.ApiResponse<T.KategoriUsaha>>(`/kategori-usaha/${id}`, data)
+      .put<{message: string; data: T.KategoriUsaha}>(`/business-categories/${id}`, data)
       .then(res => res.data)
       .catch(e => handleError(e, `memperbarui kategori usaha #${id}`)),
 
@@ -332,7 +328,77 @@ export const kategoriUsahaApi = {
    */
   delete: (id: number) =>
     privateClient
-      .delete<T.ApiMessageResponse>(`/kategori-usaha/${id}`)
+      .delete<{message: string}>(`/business-categories/${id}`)
+      .then(res => res.data)
+      .catch(e => handleError(e, `menghapus kategori usaha #${id}`)),
+};
+
+// ===================================
+// SUBSECTORS API - Sesuai dengan OpenAPI spec
+// ===================================
+export const subsectorsApi = {
+  getAll: () =>
+    publicClient
+      .get<{message: string; data: T.SubSector[]}>('/subsectors')
+      .then(res => res.data.data)
+      .catch(e => handleError(e, 'mengambil daftar subsektor')),
+
+  getById: (id: string) =>
+    publicClient
+      .get<{message: string; data: T.SubSector}>(`/subsectors/${id}`)
+      .then(res => res.data.data)
+      .catch(e => handleError(e, `mengambil subsektor #${id}`)),
+
+  create: (data: {title: string}) =>
+    privateClient
+      .post<{message: string; data: T.SubSector}>('/subsectors', data)
+      .then(res => res.data)
+      .catch(e => handleError(e, 'membuat subsektor')),
+
+  update: (id: string, data: {title: string}) =>
+    privateClient
+      .put<{message: string; data: T.SubSector}>(`/subsectors/${id}`, data)
+      .then(res => res.data)
+      .catch(e => handleError(e, `memperbarui subsektor #${id}`)),
+
+  delete: (id: string) =>
+    privateClient
+      .delete<{message: string}>(`/subsectors/${id}`)
+      .then(res => res.data)
+      .catch(e => handleError(e, `menghapus subsektor #${id}`)),
+};
+
+// ===================================
+// BUSINESS CATEGORIES API - Sesuai dengan OpenAPI spec
+// ===================================
+export const businessCategoriesApi = {
+  getAll: () =>
+    publicClient
+      .get<{message: string; data: T.BusinessCategory[]}>('/business-categories')
+      .then(res => res.data.data)
+      .catch(e => handleError(e, 'mengambil kategori usaha')),
+
+  getById: (id: number) =>
+    publicClient
+      .get<{message: string; data: T.BusinessCategory}>(`/business-categories/${id}`)
+      .then(res => res.data.data)
+      .catch(e => handleError(e, `mengambil kategori usaha #${id}`)),
+
+  create: (data: {name: string; image?: string; sub_sector_id: string; description?: string}) =>
+    privateClient
+      .post<{message: string; data: T.BusinessCategory}>('/business-categories', data)
+      .then(res => res.data)
+      .catch(e => handleError(e, 'membuat kategori usaha')),
+
+  update: (id: number, data: Partial<{name: string; image?: string; sub_sector_id: string; description?: string}>) =>
+    privateClient
+      .put<{message: string; data: T.BusinessCategory}>(`/business-categories/${id}`, data)
+      .then(res => res.data)
+      .catch(e => handleError(e, `memperbarui kategori usaha #${id}`)),
+
+  delete: (id: number) =>
+    privateClient
+      .delete<{message: string}>(`/business-categories/${id}`)
       .then(res => res.data)
       .catch(e => handleError(e, `menghapus kategori usaha #${id}`)),
 };

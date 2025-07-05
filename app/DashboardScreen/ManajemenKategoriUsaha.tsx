@@ -20,8 +20,9 @@ import Icon from 'react-native-vector-icons/Feather';
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
 
 import { useTheme } from '../Context/ThemeContext';
-import { masterDataApi, kategoriUsahaApi, uploaderApi } from '../../lib/api';
-import { KategoriUsaha, KategoriUsahaPayload } from '../../lib/types';
+import { masterDataApi, kategoriUsahaApi, uploaderApi, subsectorsApi } from '../../lib/api';
+import { KategoriUsaha, KategoriUsahaPayload, SubSector } from '../../lib/types';
+import { CustomPicker } from '../../components/CustomPicker';
 
 /**
  * Komponen Kartu untuk setiap Kategori
@@ -55,16 +56,25 @@ const ManajemenKategoriScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<KategoriUsaha | null>(null);
-  const [formData, setFormData] = useState<KategoriUsahaPayload>({ name: '', image: '' });
+  const [formData, setFormData] = useState<KategoriUsahaPayload>({ name: '', image: '', sub_sector_id: '' });
   const [imageAsset, setImageAsset] = useState<Asset | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+
+  // State untuk Subsector
+  const [subsectors, setSubsectors] = useState<SubSector[]>([]);
+  const [subsectorLoading, setSubsectorLoading] = useState(false);
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await masterDataApi.getBusinessCategories();
-      setCategories(data);
+      setCategories(
+        data.map((item: any) => ({
+          ...item,
+          created_at: item.created_at === null ? undefined : item.created_at,
+        }))
+      );
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -72,16 +82,29 @@ const ManajemenKategoriScreen = () => {
     }
   }, []);
 
+  const fetchSubsectors = useCallback(async () => {
+    setSubsectorLoading(true);
+    try {
+      const data = await subsectorsApi.getAll();
+      setSubsectors(data);
+    } catch (e: any) {
+      console.error('Error fetching subsectors:', e.message);
+    } finally {
+      setSubsectorLoading(false);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       fetchCategories();
-    }, [fetchCategories])
+      fetchSubsectors();
+    }, [fetchCategories, fetchSubsectors])
   );
 
   const openAddModal = () => {
     setIsEditMode(false);
     setCurrentCategory(null);
-    setFormData({ name: '', image: '' });
+    setFormData({ name: '', image: '', sub_sector_id: '' });
     setImageAsset(null);
     setModalVisible(true);
   };
@@ -89,7 +112,11 @@ const ManajemenKategoriScreen = () => {
   const openEditModal = (category: KategoriUsaha) => {
     setIsEditMode(true);
     setCurrentCategory(category);
-    setFormData({ name: category.name, image: category.image ?? '' });
+    setFormData({
+      name: category.name,
+      image: category.image ?? '',
+      sub_sector_id: category.sub_sector_id ?? '',
+    });
     setImageAsset(null);
     setModalVisible(true);
   };
@@ -130,6 +157,10 @@ const ManajemenKategoriScreen = () => {
   const handleSubmit = async () => {
     if (!formData.name) {
       Alert.alert('Input Tidak Lengkap', 'Nama kategori wajib diisi.');
+      return;
+    }
+    if (!formData.sub_sector_id) {
+      Alert.alert('Input Tidak Lengkap', 'Subsektor wajib dipilih.');
       return;
     }
     setFormLoading(true);
@@ -203,6 +234,20 @@ const ManajemenKategoriScreen = () => {
               placeholderTextColor={placeholderColor}
               className="bg-gray-100 dark:bg-zinc-700 p-4 rounded-lg text-black dark:text-white text-base mb-6"
             />
+
+            <View className="mb-6">
+              <Text className="text-gray-700 dark:text-gray-300 mb-2 font-medium">Subsektor</Text>
+              <CustomPicker
+                items={subsectors.map(subsector => ({
+                  label: subsector.title,
+                  value: subsector.id,
+                }))}
+                selectedValue={formData.sub_sector_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, sub_sector_id: value }))}
+                placeholder="Pilih Subsektor"
+                disabled={subsectorLoading}
+              />
+            </View>
 
             <TouchableOpacity onPress={handleSubmit} disabled={formLoading} className="bg-yellow-500 p-4 rounded-lg items-center justify-center shadow-md">
               {formLoading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">{isEditMode ? 'Simpan Perubahan' : 'Tambah'}</Text>}

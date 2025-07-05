@@ -19,7 +19,7 @@ import { useFocusEffect, useNavigation, NavigationProp } from '@react-navigation
 import Icon from 'react-native-vector-icons/Feather';
 import { useTheme } from '../Context/ThemeContext';
 import { productsApi } from '../../lib/api';
-import { Product } from '../../lib/types';
+import { Product, UpdateProductPayload } from '../../lib/types';
 
 // Tipe untuk Navigasi
 type ProductNavProp = NavigationProp<{
@@ -152,7 +152,27 @@ const ManajemenProdukScreen = () => {
     setIsStatusModalVisible(false);
     setUpdatingStatusId(selectedProduct.id);
     try {
-      await productsApi.update(selectedProduct.id, { status_produk: newStatus });
+      // Send all required fields for product update as per OpenAPI specification
+      const updatePayload: UpdateProductPayload = {
+        name: selectedProduct.name,
+        description: selectedProduct.description,
+        price: selectedProduct.price,
+        stock: selectedProduct.stock,
+        phone_number: selectedProduct.phone_number,
+        business_category_id: selectedProduct.business_category_id ?? 1, // Default fallback
+        image: selectedProduct.image,
+        status_produk: newStatus,
+      };
+      
+      // Include optional fields if they exist
+      if (selectedProduct.owner_name) {
+        updatePayload.owner_name = selectedProduct.owner_name;
+      }
+      if (selectedProduct.sub_sector_id) {
+        updatePayload.sub_sector_id = selectedProduct.sub_sector_id;
+      }
+      
+      await productsApi.update(selectedProduct.id, updatePayload);
       setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, status_produk: newStatus } : p));
     } catch (e: any) {
       Alert.alert('Error', `Gagal mengubah status produk: ${e.message}`);
