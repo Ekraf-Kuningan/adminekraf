@@ -151,7 +151,7 @@ export const authApi = {
 // ===================================
 export const uploaderApi = {
   uploadImage: async (imageAsset: Asset): Promise<string> => {
-    const uploaderUrl = 'https://apidl.asepharyana.cloud/api/uploader/ryzencdn';
+    const uploaderUrl = 'https://apidl.asepharyana.tech/api/uploader/ryzencdn';
 
     if (!imageAsset.uri || !imageAsset.fileName || !imageAsset.type) {
       throw new Error('Data gambar tidak lengkap untuk diunggah.');
