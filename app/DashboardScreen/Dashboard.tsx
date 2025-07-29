@@ -100,7 +100,18 @@ const DashboardAdminScreen = () => {
         masterDataApi.getBusinessCategories(),
       ]);
 
-      const umkmUsers = userResponse.filter(u => u.levels?.name === 'UMKM');
+      // Filter users dengan level "user" (UMKM)
+      const umkmUsers = userResponse.filter(u => {
+        const levelName = u.levels?.name || u.level;
+        return levelName === 'user';
+      });
+
+      console.log('📊 Total users ditemukan:', userResponse.length);
+      console.log('🏢 UMKM users (level: user) ditemukan:', umkmUsers.length);
+      console.log('👥 Daftar level users:', userResponse.map(u => ({ 
+        name: u.name, 
+        level: u.levels?.name || u.level 
+      })));
 
       setStats({
         users: String(umkmUsers.length),

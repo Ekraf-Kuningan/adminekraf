@@ -205,6 +205,7 @@ export interface ProductPayload {
   sub_sector_id?: string; // Added from OpenAPI
   image: string;
   status_produk?: ProductStatus;
+  status?: ProductStatus; // Add status field sesuai database
 }
 
 export interface OnlineStoreLink {
